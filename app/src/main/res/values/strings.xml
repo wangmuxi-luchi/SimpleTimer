@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">simple_timer</string>
+    <string name="title_activity_event_list">EventListActivity</string>
+    <string name="test">test</string>
 </resources>

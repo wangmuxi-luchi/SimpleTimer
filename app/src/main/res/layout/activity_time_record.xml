@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 标题栏 -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            android:layout_marginBottom="16dp">
+
+            <Button
+                android:id="@+id/back_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="返回"
+                android:background="?attr/selectableItemBackground" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="添加"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:layout_marginStart="8dp" />
+
+            <Button
+                android:id="@+id/today_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="今天"
+                android:padding="12dp"
+                android:background="?attr/selectableItemBackground"
+                android:layout_marginStart="8dp"
+                />
+
+            <Button
+                android:id="@+id/save_button_top"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="保存"
+                android:padding="12dp"
+                android:background="?attr/selectableItemBackground"
+                android:layout_marginStart="8dp"/>
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- 总时长 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="46分钟"
+            android:textSize="20sp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 时间选择器 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <!-- 开始时间 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="开始时间"
+                    android:layout_marginBottom="4dp"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="center_horizontal"/>
+
+                <TimePicker
+                    android:id="@+id/startTimePicker"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:timePickerMode="spinner"/>
+            </LinearLayout>
+
+            <!-- 结束时间 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="结束时间"
+                    android:layout_marginBottom="4dp"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="center_horizontal"/>
+
+                <TimePicker
+                    android:id="@+id/endTimePicker"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:timePickerMode="spinner"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 分类选择 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="分类"
+            android:layout_marginBottom="8dp" />
+
+        <!-- 使用自定义的 AutoHeightGridView 加载分类数据 -->
+        <com.wy.simple_timer.custom_views.AutoHeightGridView
+            android:id="@+id/category_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:numColumns="4"
+            android:choiceMode="singleChoice"
+            android:padding="8dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 备注输入框 -->
+        <EditText
+            android:id="@+id/notes_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="请输入备注" />
+
+        <!-- 保存按钮 -->
+        <Button
+            android:id="@+id/save_button_btm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="保存" />
+    </LinearLayout>
+</ScrollView>
