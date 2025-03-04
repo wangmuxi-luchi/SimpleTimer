@@ -2,35 +2,27 @@ package com.wy.simple_timer.adapter
 
 import android.content.Context
 import android.graphics.Color
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.ImageView
-import android.widget.TextView
-import android.text.TextUtils
 import com.wy.simple_timer.R
-import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.databinding.ActivityTimeRecordBinding
 
-class TimeRecordCategoryAdapter(
-    context: Context,
-    private val binding: ActivityTimeRecordBinding,
-    private val categories: MutableList<Category>
-) : ArrayAdapter<Category>(context, 0, categories) {
+class CategoryAdapterTR(context: Context,
+                        private val binding: ActivityTimeRecordBinding,
+                        AddLastItem : Boolean = false,
+                        AddLastItemText : String = "添加",
+                        AddLastItemColor : String = "#808080"
+) : BaseCategoryAdapter(context, AddLastItem, AddLastItemText, AddLastItemColor) {
 
-    private class ViewHolder {
-        lateinit var categoryText: TextView
-        lateinit var dot1: ImageView
-        lateinit var dot2: ImageView
-    }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var view = convertView
         val holder: ViewHolder
 
         if (view == null) {
-            view = LayoutInflater.from(context).inflate(R.layout.timerecord_category_list_item, parent, false)
+            view = LayoutInflater.from(context).inflate(R.layout.item_timerecord_category_list, parent, false)
             if(view == null) {
                 throw RuntimeException("Failed to inflate layout")
             }
@@ -56,7 +48,7 @@ class TimeRecordCategoryAdapter(
             }
         }
 
-        // 根据是否选中设置小圆点的可见性
+//        // 根据是否选中设置小圆点的可见性
         val isSelected = position == binding.categoryList.checkedItemPosition
         holder.dot1.visibility = if (isSelected) View.VISIBLE else View.GONE
         holder.dot2.visibility = if (isSelected) View.VISIBLE else View.GONE

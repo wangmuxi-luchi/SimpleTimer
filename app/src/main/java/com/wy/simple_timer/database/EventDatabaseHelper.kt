@@ -22,18 +22,24 @@ class EventDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         const val CATEGORY_COLUMN_COLOR = "category_color"
     }
 
-    private val CREATE_TABLE = "CREATE TABLE $TABLE_NAME (" +
-            "$COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-            "$COLUMN_START_TIME TEXT NOT NULL, " +
-            "$COLUMN_END_TIME TEXT NOT NULL, " +
-            "$COLUMN_CATEGORY_ID INTEGER NOT NULL, " + // 修改为使用分类id
-            "$COLUMN_NOTES TEXT, " +
-            "FOREIGN KEY ($COLUMN_CATEGORY_ID) REFERENCES $CATEGORY_TABLE_NAME($CATEGORY_COLUMN_ID))"
+    private val CREATE_TABLE = """
+        CREATE TABLE $TABLE_NAME (
+            $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            $COLUMN_START_TIME TEXT NOT NULL,
+            $COLUMN_END_TIME TEXT NOT NULL,
+            $COLUMN_CATEGORY_ID INTEGER NOT NULL,
+            $COLUMN_NOTES TEXT,
+            FOREIGN KEY ($COLUMN_CATEGORY_ID) REFERENCES $CATEGORY_TABLE_NAME($CATEGORY_COLUMN_ID)
+        )
+    """.trimIndent()
 
-    private val CREATE_CATEGORY_TABLE = "CREATE TABLE $CATEGORY_TABLE_NAME (" +
-            "$CATEGORY_COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-            "$CATEGORY_COLUMN_NAME TEXT NOT NULL, " +
-            "$CATEGORY_COLUMN_COLOR TEXT NOT NULL)"
+    private val CREATE_CATEGORY_TABLE = """
+        CREATE TABLE $CATEGORY_TABLE_NAME (
+            $CATEGORY_COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            $CATEGORY_COLUMN_NAME TEXT NOT NULL,
+            $CATEGORY_COLUMN_COLOR TEXT NOT NULL
+        )
+    """.trimIndent()
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(CREATE_CATEGORY_TABLE)
