@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/category_name_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="分类名称" />
+
+    <TextView
+        android:id="@+id/category_total_time_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="分类累计时间: 0 分钟" />
+
+    <Button
+        android:id="@+id/update_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="更新分类"
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/delete_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="删除分类"
+        android:layout_marginTop="16dp" />
+</LinearLayout>
