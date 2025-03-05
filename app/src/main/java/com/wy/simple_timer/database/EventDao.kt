@@ -86,6 +86,20 @@ class EventDao(context: Context) {
         }
     }
 
+    // 获取所有事件
+    fun getAllEvents(): List<Event> {
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            EventDatabaseHelper.TABLE_NAME,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+        return getEventsFromCursor(cursor)
+    }
     // 按年查询事件
     fun getEventsByYear(date: Date): List<Event> {
         val db = dbHelper.readableDatabase

@@ -18,7 +18,6 @@ class CategoryAdapterCM(
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var view = convertView
-        val holder: ViewHolder
 
         if (view == null) {
             view = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false)

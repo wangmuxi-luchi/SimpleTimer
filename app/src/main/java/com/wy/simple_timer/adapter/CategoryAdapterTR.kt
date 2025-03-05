@@ -6,6 +6,8 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import com.wy.simple_timer.R
 import com.wy.simple_timer.databinding.ActivityTimeRecordBinding
 
@@ -16,6 +18,11 @@ class CategoryAdapterTR(context: Context,
                         AddLastItemColor : String = "#808080"
 ) : BaseCategoryAdapter(context, AddLastItem, AddLastItemText, AddLastItemColor) {
 
+    private class ViewHolder {
+        lateinit var categoryText: TextView
+        lateinit var dot1: ImageView
+        lateinit var dot2: ImageView
+    }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var view = convertView
