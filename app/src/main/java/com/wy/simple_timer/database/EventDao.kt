@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -92,6 +93,8 @@ class EventDao(context: Context) {
         val year = dateFormat.format(date)
         val selection = "${EventDatabaseHelper.COLUMN_START_TIME} LIKE ?"
         val selectionArgs = arrayOf("$year%")
+        // 添加排序规则
+        val orderBy = "${EventDatabaseHelper.COLUMN_START_TIME} ASC" 
         val cursor = db.query(
             EventDatabaseHelper.TABLE_NAME,
             null,
@@ -99,11 +102,10 @@ class EventDao(context: Context) {
             selectionArgs,
             null,
             null,
-            null
+            orderBy
         )
         return getEventsFromCursor(cursor)
     }
-
     // 按月查询事件
     fun getEventsByMonth(date: Date): List<Event> {
         val db = dbHelper.readableDatabase
@@ -111,6 +113,8 @@ class EventDao(context: Context) {
         val month = dateFormat.format(date)
         val selection = "${EventDatabaseHelper.COLUMN_START_TIME} LIKE ?"
         val selectionArgs = arrayOf("$month%")
+        // 添加排序规则
+        val orderBy = "${EventDatabaseHelper.COLUMN_START_TIME} ASC" 
         val cursor = db.query(
             EventDatabaseHelper.TABLE_NAME,
             null,
@@ -118,11 +122,10 @@ class EventDao(context: Context) {
             selectionArgs,
             null,
             null,
-            null
+            orderBy
         )
         return getEventsFromCursor(cursor)
     }
-
     // 按日查询事件
     fun getEventsByDay(date: Date): List<Event> {
         val db = dbHelper.readableDatabase
@@ -130,6 +133,8 @@ class EventDao(context: Context) {
         val day = dateFormat.format(date)
         val selection = "${EventDatabaseHelper.COLUMN_START_TIME} LIKE ?"
         val selectionArgs = arrayOf("$day%")
+        // 添加排序规则
+        val orderBy = "${EventDatabaseHelper.COLUMN_START_TIME} ASC" 
         val cursor = db.query(
             EventDatabaseHelper.TABLE_NAME,
             null,
@@ -137,16 +142,17 @@ class EventDao(context: Context) {
             selectionArgs,
             null,
             null,
-            null
+            orderBy
         )
         return getEventsFromCursor(cursor)
     }
-
     // 按事件类型查询事件
     fun getEventsByCategory(categoryId: Long): List<Event> {
         val db = dbHelper.readableDatabase
         val selection = "${EventDatabaseHelper.COLUMN_CATEGORY_ID} = ?"
         val selectionArgs = arrayOf(categoryId.toString())
+        // 添加排序规则
+        val orderBy = "${EventDatabaseHelper.COLUMN_START_TIME} ASC" 
         val cursor = db.query(
             EventDatabaseHelper.TABLE_NAME,
             null,
@@ -154,23 +160,35 @@ class EventDao(context: Context) {
             selectionArgs,
             null,
             null,
-            null
+            orderBy
         )
         return getEventsFromCursor(cursor)
     }
-
     private fun getEventsFromCursor(cursor: Cursor): List<Event> {
         val events = mutableListOf<Event>()
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        while (cursor.moveToNext()) {
-            val id = cursor.getLong(cursor.getColumnIndexOrThrow(EventDatabaseHelper.COLUMN_ID))
-            val startTime = dateFormat.parse(cursor.getString(cursor.getColumnIndexOrThrow(EventDatabaseHelper.COLUMN_START_TIME)))
-            val endTime = dateFormat.parse(cursor.getString(cursor.getColumnIndexOrThrow(EventDatabaseHelper.COLUMN_END_TIME)))
-            val categoryId = cursor.getLong(cursor.getColumnIndexOrThrow(EventDatabaseHelper.COLUMN_CATEGORY_ID))
-            val notes = cursor.getString(cursor.getColumnIndexOrThrow(EventDatabaseHelper.COLUMN_NOTES))
-            events.add(Event(id, startTime, endTime, categoryId, notes))
+        cursor.use {
+            while (it.moveToNext()) {
+                val id = it.getLong(it.getColumnIndexOrThrow(EventDatabaseHelper.COLUMN_ID))
+                val startTime = try {
+                    dateFormat.parse(it.getString(it.getColumnIndexOrThrow(EventDatabaseHelper.COLUMN_START_TIME)))
+                } catch (e: Exception){
+                    Log.e("EventDao", "Failed to parse date", e)
+                    null
+                }
+                val endTime = try {
+                    dateFormat.parse(it.getString(it.getColumnIndexOrThrow(EventDatabaseHelper.COLUMN_END_TIME)))
+                } catch (e: Exception){
+                    Log.e("EventDao", "Failed to parse date", e)
+                    null
+                }
+                val categoryId = it.getLong(it.getColumnIndexOrThrow(EventDatabaseHelper.COLUMN_CATEGORY_ID))
+                val notes = it.getString(it.getColumnIndexOrThrow(EventDatabaseHelper.COLUMN_NOTES))
+                if (startTime!= null && endTime!= null){
+                    events.add(Event(id, startTime, endTime, categoryId, notes))
+                }
+            }
         }
-        cursor.close()
         return events
     }
 }
