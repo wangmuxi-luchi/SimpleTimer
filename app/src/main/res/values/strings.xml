@@ -2,4 +2,9 @@
     <string name="app_name">simple_timer</string>
     <string name="title_activity_event_list">EventListActivity</string>
     <string name="test">test</string>
+
+    <string name="edit">编辑</string>
+    <string name="file">归档</string>
+    <string name="delete">删除</string>
+
 </resources>
