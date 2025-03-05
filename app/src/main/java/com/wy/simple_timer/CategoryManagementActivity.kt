@@ -60,15 +60,17 @@ class CategoryManagementActivity : AppCompatActivity() {
 
         // 添加点击事件监听器
         categoryList.setOnItemClickListener { _, _, position, _ ->
-            if (position == categoryList.adapter.count - 1) {
+            if (position == adapter.count - 1) {
                 // 处理“添加”项的点击事件
                 showAddCategoryDialog()
             } else {
-                val category = position
+                val category = adapter.getItem(position)
                 val intent = Intent(this, CategoryDetailActivity::class.java)
-                intent.putExtra("category", position)
-                startActivity(intent)
-//                TODO: 打开分类详情页面时传输分类的ID
+                // 传递 categoryId
+                category?.let { intent.putExtra("categoryId", it.id)
+                    Log.d("CategoryManagementActivity", "categoryId: ${it.id}")
+                    startActivity(intent)
+                }
             }
         }
     }
