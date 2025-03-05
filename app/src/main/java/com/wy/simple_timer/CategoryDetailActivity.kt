@@ -11,7 +11,7 @@ class CategoryDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_category_detail)
 
-        categoryDetailListView = findViewById(R.id.category_detail_list_view)
+//        categoryDetailListView = findViewById(R.id.category_detail_list_view)
 
         // 后续可添加逻辑来填充 ListView 数据
         
