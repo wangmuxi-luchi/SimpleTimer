@@ -1,10 +1,25 @@
 <resources>
     <string name="app_name">simple_timer</string>
     <string name="title_activity_event_list">EventListActivity</string>
-    <string name="test">test</string>
 
     <string name="edit">编辑</string>
     <string name="file">归档</string>
     <string name="delete">删除</string>
+    <string name="OpenRecordString">打开记录页面</string>
+    <string name="OpenEventListString">打开事件列表页面</string>
+    <string name="BackString">返回</string>
+    <string name="AddString">添加</string>
+    <string name="TodayString">今天</string>
+    <string name="SaveString">保存</string>
+    <string name="PlaceHolderText">占位文本</string>
+    <string name="StartTimeString">开始时间</string>
+    <string name="EndTime">结束时间</string>
+    <string name="Category">分类</string>
+    <string name="Note">请输入备注</string>
+    <string name="TimeRangeExample">00:00~00:18</string>
+    <string name="ExampleCategory">业余探索</string>
+    <string name="ExampleMinute">18分钟</string>
+    <string name="time_range">%1$s~%2$s</string>
+    <string name="minutes">%1$d分钟</string>
 
 </resources>

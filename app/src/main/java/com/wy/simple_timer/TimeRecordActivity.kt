@@ -1,25 +1,29 @@
 package com.wy.simple_timer
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.*
+import android.widget.TimePicker
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.wy.simple_timer.databinding.ActivityTimeRecordBinding
-import java.util.Calendar
-import android.content.Intent
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import com.wy.simple_timer.adapter.CategoryAdapterTR
-import com.wy.simple_timer.database.Category
-import com.wy.simple_timer.database.EventDao
+import com.wy.simple_timer.database.CategoryViewModel
+import com.wy.simple_timer.database.Event
+import com.wy.simple_timer.database.EventViewModel
+import com.wy.simple_timer.databinding.ActivityTimeRecordBinding
+import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class TimeRecordActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTimeRecordBinding
-    private val categoryList = mutableListOf<String>() // 假设这里是分类数据
-    private val eventDao = EventDao(this)
-    private lateinit var categoryListAdapter: CategoryAdapterTR
+    private lateinit var categoryAdapter: CategoryAdapterTR
+    private lateinit var categoryviewmodel: CategoryViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,6 +37,14 @@ class TimeRecordActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        categoryviewmodel = ViewModelProvider( this )[CategoryViewModel::class.java]
+        categoryviewmodel.setCategories(categoryviewmodel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
+        categoryAdapter = CategoryAdapterTR()
+
+        // 设置 RecyclerView 的布局管理器为 GridLayoutManager，每列显示 4 个元素
+        val recyclerView = binding.categoryList
+        recyclerView.layoutManager = GridLayoutManager(this, 4)
+        recyclerView.adapter = categoryAdapter
 
         val startTimePicker = binding.startTimePicker
         val endTimePicker = binding.endTimePicker
@@ -62,8 +74,11 @@ class TimeRecordActivity : AppCompatActivity() {
             onBackPressedDispatcher.onBackPressed()
         }
 
-        // 从数据库读取分类信息, 并添加到 categoryList 中
-        initCategoryList()
+        lifecycleScope.launch {
+            categoryviewmodel.getCategories()?.collect { categories ->
+                categoryAdapter.setData(categories)
+            }
+        }
 
         binding.saveButtonTop.setOnClickListener {
             saveRecord(startTimePicker, endTimePicker)
@@ -73,54 +88,12 @@ class TimeRecordActivity : AppCompatActivity() {
         }
 
         // 为 GridView 的最后一个元素添加点击事件监听器
-        // 修改 setOnItemClickListener 方法
-        binding.categoryList.setOnItemClickListener { _, _, position, _ ->
-            val adapter = categoryListAdapter as ArrayAdapter<*>
-            if (position == adapter.count - 1) {
-                // 处理“编辑分类”的点击事件
-                val intent = Intent(this, CategoryManagementActivity::class.java)
-                startActivity(intent)
-                if (adapter.count>0) {
-                    // TODO:重新设置选中状态为上一次选择的项目
-                    binding.categoryList.setItemChecked(-1, true)
-                }
-            } else {
-                // 处理其他分类的点击事件
-                // 更新所有项目的圆点显示状态
-                for (i in 0 until adapter.count - 1) {
-                    val view = binding.categoryList.getChildAt(i)
-                    if (view != null) {
-                        // 找到两个小圆点的 ImageView
-                        val dot1 = view.findViewById<ImageView>(R.id.dot1)
-                        val dot2 = view.findViewById<ImageView>(R.id.dot2)
-
-                        // 根据是否选中设置小圆点的可见性
-                        val isSelected = i == position
-                        dot1.visibility = if (isSelected) View.VISIBLE else View.GONE
-                        dot2.visibility = if (isSelected) View.VISIBLE else View.GONE
-                    }
-                }
-            }
+        categoryAdapter.setOnLastItemClickListener{
+            val intent = Intent(this, CategoryManagementActivity::class.java)
+            startActivity(intent)
         }
     }
 
-
-
-    private fun initCategoryList() {
-//        val eventDao = EventDao(this)
-//        val categories = eventDao.getAllCategories().toMutableList()
-//
-//        val editCategory = Category(-1, "编辑分类", "#808080")
-//        categories.add(editCategory)
-//
-        categoryListAdapter = CategoryAdapterTR(this, binding, true, "编辑分类", "#808080")
-
-        binding.categoryList.adapter = categoryListAdapter
-        binding.categoryList.choiceMode = AbsListView.CHOICE_MODE_SINGLE
-        if (categoryListAdapter.count>0) {
-            binding.categoryList.setItemChecked(0, true)
-        }
-    }
 
     private fun saveRecord(startTimePicker: TimePicker, endTimePicker: TimePicker) {
         val calendar = Calendar.getInstance()
@@ -137,29 +110,25 @@ class TimeRecordActivity : AppCompatActivity() {
             return
         }
 
-        val selectedPosition = binding.categoryList.checkedItemPosition
-        if (selectedPosition == categoryListAdapter.count - 1) {
-            Toast.makeText(this, "请选择有效的分类", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val selectedCategory  = if (selectedPosition != -1) categoryListAdapter.getItem(selectedPosition) else {
-            Toast.makeText(this, "请选择分类", Toast.LENGTH_SHORT).show()
-            return
-        }
-        // 根据分类名称获取分类ID
-        val categoryId = selectedCategory?.id ?: -1L
-        if (categoryId == -1L) {
-            Toast.makeText(this, "未找到对应的分类ID", Toast.LENGTH_SHORT).show()
+        val selectedCategoryId  = categoryAdapter.getCurrentCategory()
+
+        if (selectedCategoryId == null) {
+            Toast.makeText(this, "未找到对应的分类", Toast.LENGTH_SHORT).show()
             return
         }
         val remark = binding.notesEditText.text.toString()
 
-        eventDao.insertEvent(startTime, endTime, categoryId, remark)
-
+        // 保存记录到数据库
+        val event = Event(0, startTime, endTime, selectedCategoryId, remark)
+        val eventviewmodel = ViewModelProvider( this )[EventViewModel::class.java]
+        eventviewmodel.insertEvent(event)
         Log.d("TimeRecordActivity", "保存记录成功")
+        Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show()
+
+//        eventDao.insertEvent(Event(0, startTime, endTime, categoryId, remark))
+
 
         onBackPressedDispatcher.onBackPressed()
 
-        Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show()
     }
 }

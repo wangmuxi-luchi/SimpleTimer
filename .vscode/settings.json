@@ -1,3 +1,4 @@
 {
-    "marscode.chatLanguage": "cn"
+    "marscode.chatLanguage": "cn",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

@@ -21,7 +21,7 @@
         android:id="@+id/openRecordActivityButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="打开记录页面"
+        android:text="@string/OpenRecordString"
         app:layout_constraintTop_toBottomOf="@id/helloWorldTextView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -31,7 +31,7 @@
         android:id="@+id/openEventListActivityButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="打开事件列表页面"
+        android:text="@string/OpenEventListString"
         app:layout_constraintTop_toBottomOf="@id/openRecordActivityButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

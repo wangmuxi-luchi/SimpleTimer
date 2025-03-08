@@ -4,30 +4,28 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.wy.simple_timer.adapter.BaseCategoryAdapter
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.wy.simple_timer.adapter.CategoryAdapterCM
 import com.wy.simple_timer.database.Category
-import com.wy.simple_timer.database.EventDao
+import com.wy.simple_timer.database.CategoryViewModel
 import com.wy.simple_timer.databinding.ActivityCategoryManagementBinding
+import kotlinx.coroutines.launch
 
 class CategoryManagementActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCategoryManagementBinding
-    private lateinit var categoryList: ListView
-    private lateinit var categoryAdapter: ArrayAdapter<Category>
-    private val eventDao = EventDao(this)
-//    private val categories = mutableListOf<Category>()
+    private lateinit var viewmodel: CategoryViewModel
+    private lateinit var categoryAdapter: CategoryAdapterCM
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityCategoryManagementBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        enableEdgeToEdge()
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -35,50 +33,39 @@ class CategoryManagementActivity : AppCompatActivity() {
             insets
         }
 
-        categoryList = binding.categoryList
-
-        // 从数据库读取分类数据
-//        loadCategoriesFromDatabase()
-
-        // 添加“添加”项
-//        val addCategory = Category(-1, "添加", "#808080")
-//        categories.add(addCategory)
-
-//        categoryAdapter = object : ArrayAdapter<Category>(this, android.R.layout.simple_list_item_1, categories) {
-//            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-//                val view = super.getView(position, convertView, parent)
-//                val textView = view.findViewById<TextView>(android.R.id.text1)
-//                val category = getItem(position)
-//                if (category != null) {
-//                    textView.text = category.name
-//                }
-//                return view
-//            }
-//        }
-        val adapter = CategoryAdapterCM(this, true, "添加分类", "#808080")
-        categoryList.adapter = adapter
-
-        // 添加点击事件监听器
-        categoryList.setOnItemClickListener { _, _, position, _ ->
-            if (position == adapter.count - 1) {
-                // 处理“添加”项的点击事件
-                showAddCategoryDialog()
-            } else {
-                val category = adapter.getItem(position)
-                val intent = Intent(this, CategoryDetailActivity::class.java)
-                // 传递 categoryId
-                category?.let { intent.putExtra("categoryId", it.id)
-                    Log.d("CategoryManagementActivity", "categoryId: ${it.id}")
-                    startActivity(intent)
-                }
+        // 设置 RecyclerView 的布局管理器为 LinearLayoutManager, 垂直方向
+        val recyclerView = binding.categoryList
+        recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        // 设置适配器
+        viewmodel = ViewModelProvider( this )[CategoryViewModel::class.java]
+        viewmodel.setCategories(viewmodel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
+        categoryAdapter = CategoryAdapterCM()
+        recyclerView.adapter = categoryAdapter
+        // 将数据加载到适配器中
+        lifecycleScope.launch {
+            viewmodel.getCategories()?.collect { categories ->
+                categoryAdapter.setData(categories)
             }
         }
-    }
+        // 设置适配器的回调函数,打开CategoryDetailActivity
+        categoryAdapter.setOnOtherItemClickListener { categoryID ->
+            val intent = Intent(this, CategoryDetailActivity::class.java)
+            intent.putExtra("categoryID", categoryID)
+            startActivity(intent)
+        }
+        // 点击添加按钮,弹出添加分类的对话框
+        categoryAdapter.setOnLastItemClickListener {
+            showAddCategoryDialog()
+        }
+        // 绑定适配器的回调函数,更新分类的position
+        categoryAdapter.setOnBindViewHolder { category, position ->
+            if (position != category.position) {
+                Log.d("CategoryManagementActivity", "updateCategoryPosition: $category, $position")
+                viewmodel.updateCategory(category.id, category.categoryName, category.categoryColor, position, category.archived, category.parentId)
+            }
+        }
 
-//    private fun loadCategoriesFromDatabase() {
-//        val dbCategories = eventDao.getAllCategories()
-//        categories.addAll(dbCategories)
-//    }
+    }
 
     private fun showAddCategoryDialog() {
         val input = EditText(this)
@@ -89,15 +76,8 @@ class CategoryManagementActivity : AppCompatActivity() {
                 val newCategoryName = input.text.toString()
                 if (newCategoryName.isNotEmpty()) {
                     // 插入新分类到数据库
-                    eventDao.insertCategory(newCategoryName, "#808080")
-
-                    // 重新加载分类数据
-//                    categories.clear()
-//                    loadCategoriesFromDatabase()
-//                    categories.add(Category(-1, "添加", "#808080"))
-//                    categoryAdapter.notifyDataSetChanged()
-                    // 刷新列表
-                    BaseCategoryAdapter.updateData()
+                    val newCategory = Category(0, newCategoryName, "#808080", categoryAdapter.itemCount-1, false, -1)
+                    viewmodel.insertCategory(newCategory)
                 }
             }
            .setNegativeButton("取消", null)

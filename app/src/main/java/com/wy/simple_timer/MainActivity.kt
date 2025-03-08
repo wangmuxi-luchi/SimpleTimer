@@ -2,17 +2,20 @@ package com.wy.simple_timer
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import com.wy.simple_timer.database.EventViewModel
+import com.wy.simple_timer.database.MyDatabase
 import com.wy.simple_timer.databinding.ActivityMainBinding
-import com.wy.simple_timer.database.EventDao
-import java.util.*
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var eventviewmodel: EventViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,16 +33,21 @@ class MainActivity : AppCompatActivity() {
 
         // 为打开记录页面按钮添加点击事件监听器
         binding.openRecordActivityButton.setOnClickListener {
-            val eventDao = EventDao(this)
-            // 查询结束时间最大的项目
-            val allEvents = eventDao.getEventsByYear(Calendar.getInstance().time)
-            val latestEvent = allEvents.maxByOrNull { it.endTime.time }
-            
-            val intent = Intent(this, TimeRecordActivity::class.java)
-            latestEvent?.let {
-                intent.putExtra("startTime", it.endTime.time)
+            // 获取Dao实例
+            val eventDao = MyDatabase.getDatabase(application).eventDao()
+            // 异步查询事件,并打开记录页面
+            lifecycleScope.launch {
+                // 启动一个异步任务，获取事件
+                val allEvents = eventDao.getAllEvents().firstOrNull()
+                //回到主线程,找到结束时间最大的项目
+                val latestEvent = allEvents?.maxByOrNull { it.endTime.time }
+                // 启动记录页面
+                val intent = Intent(this@MainActivity, TimeRecordActivity::class.java)
+                latestEvent?.let {
+                    intent.putExtra("startTime", it.endTime.time)
+                }
+                startActivity(intent)
             }
-            startActivity(intent)
         }
 
         // 为打开事件列表页面按钮添加点击事件监听器

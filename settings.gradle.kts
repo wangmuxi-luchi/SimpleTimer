@@ -7,6 +7,9 @@ pluginManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
+        plugins {
+            id("com.google.devtools.ksp")
+        }
         mavenCentral()
         gradlePluginPortal()
     }
