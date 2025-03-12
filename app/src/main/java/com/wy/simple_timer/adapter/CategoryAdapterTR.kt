@@ -95,12 +95,7 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
                     onLastItemClickListener()
                 else if( absoluteAdapterPosition!= RecyclerView.NO_POSITION
                     &&   absoluteAdapterPosition!= currentPosition ) {
-                    val oldPosition = currentPosition
-                    // 更新当前选中的位置
-                    currentPosition = absoluteAdapterPosition
-                    // 刷新视图
-                    notifyItemChanged(oldPosition, mutableListOf("UPDATE_SELECTION"))
-                    notifyItemChanged(currentPosition, mutableListOf("UPDATE_SELECTION"))
+                    setCurrentPosition(absoluteAdapterPosition)
                 }
             }
         }
@@ -111,4 +106,17 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
         return ViewHolder(view)
     }
 
+    // 在 CategoryAdapterTR 类中新增方法
+    fun setCurrentPosition(position: Int) {
+        val oldPosition = currentPosition
+        currentPosition = if (position in 0 until categories.size) position else 0
+        notifyItemChanged(oldPosition, mutableListOf("UPDATE_SELECTION"))
+        notifyItemChanged(currentPosition, mutableListOf("UPDATE_SELECTION"))
+        Log.d("CategoryAdapter", "set current position to $currentPosition")
+    }
+    
+    // 新增辅助方法
+    fun findCategoryPosition(categoryId: Long): Int {
+        return categories.indexOfFirst { it.id == categoryId }
+    }
 }

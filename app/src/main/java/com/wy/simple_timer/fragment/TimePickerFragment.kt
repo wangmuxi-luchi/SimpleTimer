@@ -8,8 +8,12 @@ import android.widget.TimePicker
 import androidx.fragment.app.Fragment
 import com.wy.simple_timer.databinding.FragmentTimePickerBinding
 import java.util.Calendar
+import java.util.Date
+import java.util.concurrent.TimeUnit
+
 
 class TimePickerFragment : Fragment() {
+
     private lateinit var binding: FragmentTimePickerBinding
 
     override fun onCreateView(
@@ -46,6 +50,49 @@ class TimePickerFragment : Fragment() {
             calendar.timeInMillis = it
             startPicker.hour = calendar.get(Calendar.HOUR_OF_DAY)
             startPicker.minute = calendar.get(Calendar.MINUTE)
+        }
+
+        val timeChangedListener = TimePicker.OnTimeChangedListener { _, _, _ ->
+            updateDurationText()
+        }
+
+        binding.startTimePicker.setOnTimeChangedListener(timeChangedListener)
+        binding.endTimePicker.setOnTimeChangedListener(timeChangedListener)
+        
+        // 初始化时更新一次
+        updateDurationText()
+    }
+
+    private fun updateDurationText() {
+        val startTime = getStartTime()
+        val endTime = getEndTime()
+        val duration = endTime.time - startTime.time
+        
+        val hours = TimeUnit.MILLISECONDS.toHours(duration).toInt()
+        val minutes = (TimeUnit.MILLISECONDS.toMinutes(duration) % 60).toInt()
+        
+        binding.durationText.text = when {
+            hours > 0 -> "${hours}小时${minutes.toString().padStart(2, '0')}分钟"
+            else -> "${minutes}分钟"
+        }
+    }
+    fun setStartTime(startTime: Date) {
+        val calendar = Calendar.getInstance()
+        calendar.time = startTime
+        binding.startTimePicker.apply {
+            setIs24HourView(true)
+            hour = calendar.get(Calendar.HOUR_OF_DAY)
+            minute = calendar.get(Calendar.MINUTE)
+        }
+    }
+
+    fun setEndTime(endTime: Date) {
+        val calendar = Calendar.getInstance()
+        calendar.time = endTime
+        binding.endTimePicker.apply {
+            setIs24HourView(true)
+            hour = calendar.get(Calendar.HOUR_OF_DAY)
+            minute = calendar.get(Calendar.MINUTE)
         }
     }
 

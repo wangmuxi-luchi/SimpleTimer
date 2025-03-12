@@ -1,6 +1,7 @@
 package com.wy.simple_timer.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,9 +11,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.wy.simple_timer.R
 import com.wy.simple_timer.adapter.CategoryAdapterTR
+import com.wy.simple_timer.database.CategoryDao
+import com.wy.simple_timer.database.MyDatabase
 import com.wy.simple_timer.databinding.FragmentCategoryPickerBinding
 import com.wy.simple_timer.utils.SpacingItemDecoration
 import com.wy.simple_timer.viewmodel.CategoryViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class CategoryPickerFragment : Fragment() {
@@ -72,5 +76,23 @@ class CategoryPickerFragment : Fragment() {
 
     fun getCurrentCategory(): Long? {
         return categoryAdapter.getCurrentCategory()
+    }
+
+    // 在 CategoryPickerFragment 类中添加新方法
+    fun setCurrentCategory(categoryId: Long) {
+        Log.d("CategoryPickerFragment", "setCurrentCategory: $categoryId")
+        val categoryDao = MyDatabase.getDatabase(requireContext()).categoryDao()
+        lifecycleScope.launch {
+            categoryDao.getAllCategories().first()?.let { categories ->
+                Log.d("CategoryPickerFragment", "allcategories: $categories")
+            }
+            categoryViewModel.getCategories()?.first()?.let { categories ->
+                val position = categories.indexOfFirst { it.id == categoryId }
+                Log.d("CategoryPickerFragment", "setCurrentCategory: $categories，position: $position")
+                if (position != -1) {
+                    categoryAdapter.setCurrentPosition(position)
+                }
+            }
+        }
     }
 }

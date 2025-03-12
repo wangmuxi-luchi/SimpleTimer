@@ -14,6 +14,9 @@
         android:theme="@style/Theme.Simple_timer"
         tools:targetApi="31">
         <activity
+            android:name=".EventEditActivity"
+            android:exported="false" />
+        <activity
             android:name=".EventListActivity"
             android:exported="false"
             android:label="@string/title_activity_event_list"
@@ -35,10 +38,10 @@
             android:exported="false" />
         <activity
             android:name=".CategoryDetailActivity"
-            android:exported="false" />
-        <!-- 移除前台服务类型声明 -->
+            android:exported="false" /> <!-- 移除前台服务类型声明 -->
         <service
             android:name=".DatabaseManagementService"
-            android:exported="false"/>
+            android:exported="false" />
     </application>
+
 </manifest>

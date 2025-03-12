@@ -23,5 +23,7 @@
     <string name="minutes">%1$d分钟</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="EditString">编辑</string>
+    <string name="DeleteString">删除</string>
 
 </resources>

@@ -12,6 +12,8 @@ import androidx.lifecycle.lifecycleScope
 import com.wy.simple_timer.R
 import com.wy.simple_timer.database.Event
 import com.wy.simple_timer.database.MyDatabase
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -24,6 +26,9 @@ class EventAdapterEL(private val context: AppCompatActivity) : BaseEventAdapterR
         private val colorDotImageView: ImageView = itemView.findViewById(R.id.color_dot)
 
         override fun bind(event: Event, payloads: MutableList<Any>) {
+            itemView.setOnClickListener {
+                onItemClickListener(event.id)
+            }
             // 定义时间格式化器
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             // 格式化开始时间和结束时间
@@ -37,21 +42,20 @@ class EventAdapterEL(private val context: AppCompatActivity) : BaseEventAdapterR
             val categoryDao = MyDatabase.getDatabase(context).categoryDao()
             val category = categoryDao.getCategoryById(event.categoryId)
             context.lifecycleScope.launch {
-                category.collect { category ->
-                    category?.let { category1 ->
-                        try {
-                            val color = Color.parseColor(category1.categoryColor)
-                            colorDotImageView.setColorFilter(color)
-                        } catch (e: IllegalArgumentException) {
-                            e.printStackTrace()
-                        }
-                        category1.categoryName.let {
-                            activityTextView.text = it
-                            return@collect
-                        }
+                category.firstOrNull()?.let { category ->
+                    try {
+                        val color = Color.parseColor(category.categoryColor)
+                        colorDotImageView.setColorFilter(color)
+                    } catch (e: IllegalArgumentException) {
+                        e.printStackTrace()
                     }
+                    category.categoryName.let {
+                        activityTextView.text = it
+                    }
+                    cancel()
                 }
                 // 该分类已被删除，删除该类别下的所有事件
+                Log.d("EventAdapter", "Category deleted, deleting events")
                 val eventDao = MyDatabase.getDatabase(context).eventDao()
                 eventDao.deleteEventsByCategory(event.categoryId)
             }
@@ -76,4 +80,13 @@ class EventAdapterEL(private val context: AppCompatActivity) : BaseEventAdapterR
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_eventlist, parent, false)
         return ViewHolder(view)
     }
+
+    // 在 EventAdapterEL 类中添加：
+    private var onItemClickListener: (Long) -> Unit = {}
+    
+    // 新增设置点击监听器的方法
+    fun setOnItemClickListener(listener: (Long) -> Unit) {
+        onItemClickListener = listener
+    }
+
 }

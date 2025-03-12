@@ -29,20 +29,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/AddString"
+                android:text="@string/EditString"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:layout_marginStart="8dp" />
-
-            <Button
-                android:id="@+id/today_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/TodayString"
-                android:padding="12dp"
-                android:background="?attr/selectableItemBackground"
-                android:layout_marginStart="8dp"
-                />
 
             <Button
                 android:id="@+id/save_button_top"
@@ -53,15 +43,6 @@
                 android:background="?attr/selectableItemBackground"
                 android:layout_marginStart="8dp"/>
         </androidx.appcompat.widget.Toolbar>
-
-        <!-- 修改后的总时长 TextView -->
-        <TextView
-            android:id="@+id/total_duration_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:layout_marginBottom="16dp"
-            android:gravity="center" />
 
         <!-- 时间选择器 -->
         <FrameLayout
@@ -74,8 +55,8 @@
         <FrameLayout
             android:id="@+id/category_picker_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    
+            android:layout_height="wrap_content" />
+
         <!-- 备注输入框 -->
         <EditText
             android:id="@+id/notes_edit_text"
@@ -85,10 +66,28 @@
             android:inputType="text" />
 
         <!-- 保存按钮 -->
-        <Button
-            android:id="@+id/save_button_btm"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/SaveString" />
+            android:orientation="horizontal"
+            android:padding="16dp">
+    
+            <!-- 新增删除按钮 -->
+            <Button
+                android:id="@+id/delete_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/DeleteString"
+                android:backgroundTint="@color/red_FF0000" />
+    
+            <!-- 原有保存按钮 -->
+            <Button
+                android:id="@+id/save_button_btm"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/SaveString" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -1,5 +1,6 @@
 package com.wy.simple_timer.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.wy.simple_timer.EventEditActivity
 import com.wy.simple_timer.adapter.EventAdapterEL
 import com.wy.simple_timer.databinding.FragmentEventListBinding
 import com.wy.simple_timer.viewmodel.EventViewModel
@@ -51,10 +53,18 @@ class EventListFragment : Fragment() {
         }
     }
 
+    // 在 observeEvents() 方法中添加适配器点击监听：
     private fun observeEvents() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             eventViewModel.getEvents()?.collect { events ->
                 eventAdapterEL.setData(events)
+                // 新增点击监听
+                eventAdapterEL.setOnItemClickListener { eventId ->
+                    val intent = Intent(requireContext(), EventEditActivity::class.java).apply {
+                        putExtra("eventId", eventId)
+                    }
+                    startActivity(intent)
+                }
             }
         }
     }

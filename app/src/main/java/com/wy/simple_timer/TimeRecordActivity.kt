@@ -11,6 +11,7 @@ import com.wy.simple_timer.database.Event
 import com.wy.simple_timer.databinding.ActivityTimeRecordBinding
 import com.wy.simple_timer.fragment.CategoryPickerFragment
 import com.wy.simple_timer.fragment.TimePickerFragment
+import java.util.concurrent.TimeUnit
 
 class TimeRecordActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTimeRecordBinding
@@ -42,6 +43,7 @@ class TimeRecordActivity : AppCompatActivity() {
 
     private fun setupTimePickerFragment() {
         timePickerFragment = TimePickerFragment()
+        
         val bundle = Bundle()
         intent.getLongExtra("startTime", -1).takeIf { it != -1L }?.let {
             bundle.putLong("startTime", it)
@@ -67,6 +69,8 @@ class TimeRecordActivity : AppCompatActivity() {
         }
     }
 
+
+    // 在保存按钮点击前添加时间验证
     private fun saveRecord() {
         val startTime = timePickerFragment.getStartTime()
         val endTime = timePickerFragment.getEndTime()

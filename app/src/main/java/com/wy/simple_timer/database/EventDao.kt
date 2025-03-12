@@ -41,4 +41,7 @@ interface EventDao {
 
     @Query("SELECT * FROM events WHERE categoryId = :categoryId")
     fun getEventsByCategory(categoryId: Long): Flow<List<Event>>
+
+    @Query("SELECT * FROM events WHERE id = :eventId")
+    fun getEventById(eventId: Long): Flow<Event>
 }
