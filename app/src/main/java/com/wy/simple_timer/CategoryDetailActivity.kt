@@ -7,6 +7,8 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -23,18 +25,26 @@ import kotlinx.coroutines.launch
 
 class CategoryDetailActivity : AppCompatActivity() {
     private lateinit var cdBinding: ActivityCategoryDetailBinding
+    private lateinit var category: Category
     private var categoryID = 0L
     private lateinit var categoryDao: CategoryDao
     private lateinit var eventDao: EventDao
     private lateinit var editCategoryDialog: AlertDialog
     private lateinit var editCategoryInput: EditText
+
     private lateinit var selectedColor: String
     private lateinit var newCategoryName: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
         cdBinding = DataBindingUtil.setContentView(this, R.layout.activity_category_detail)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
         // 初始化 categoryDao
         categoryDao = MyDatabase.getDatabase(this).categoryDao()
         // 初始化 eventDao
@@ -51,11 +61,10 @@ class CategoryDetailActivity : AppCompatActivity() {
         }
         // 异步根据 categoryID 获取对应的 Category
         lifecycleScope.launch {
-            val category = categoryDao.getCategoryById(categoryID).firstOrNull()
-            if (category != null) {
-                // 利用category初始化变量
-                selectedColor = category.categoryColor
+            categoryDao.getCategoryById(categoryID).firstOrNull()?.let {
+                category = it
                 newCategoryName = category.categoryName
+                selectedColor = category.categoryColor
                 // 切换到主线程，绑定编辑按钮回调函数
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                     // 为编辑按钮添加点击事件监听器
@@ -133,7 +142,10 @@ class CategoryDetailActivity : AppCompatActivity() {
                 if (newCategoryName.isNotEmpty()) {
                     // 更新分类信息到数据库
                     lifecycleScope.launch {
-                        categoryDao.updateCategory(categoryID, newCategoryName, selectedColor, 0, false, -1)
+                        category.let {
+                            categoryDao.updateCategory(categoryID, newCategoryName, selectedColor,
+                                it.position, it.archived, it.parentId)
+                        }
                         updateData()
                     }
                 }

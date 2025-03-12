@@ -19,29 +19,45 @@ class EventListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setupBinding()
+        handleWindowInsets()
+        setupViewModel()
+        setupRecyclerView()
+        observeEvents()
+    }
+
+    private fun setupBinding() {
         binding = ActivityEventListBinding.inflate(layoutInflater)
         setContentView(binding.root)
+    }
 
+    private fun handleWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+    }
 
-        eventviewmodel = ViewModelProvider( this )[EventViewModel::class.java]
+    private fun setupViewModel() {
+        eventviewmodel = ViewModelProvider(this)[EventViewModel::class.java]
         eventviewmodel.setEvents(eventviewmodel.getEventDao().getAllEvents())
-        eventadapterel = EventAdapterEL(this)
-        binding.eventListView.layoutManager = LinearLayoutManager(this)
-        binding.eventListView.adapter = eventadapterel
+    }
+
+    private fun setupRecyclerView() {
+        binding.eventListView.apply {
+            layoutManager = LinearLayoutManager(this@EventListActivity)
+            adapter = EventAdapterEL(this@EventListActivity).also {
+                eventadapterel = it
+            }
+        }
+    }
+
+    private fun observeEvents() {
         lifecycleScope.launch {
             eventviewmodel.getEvents()?.collect { events ->
                 eventadapterel.setData(events)
             }
         }
-//        val allEvents = eventDao.getEventsByYear(Calendar.getInstance().time).toMutableList()
-//
-//        val adapter = BaseEventAdapterRV(this, allEvents)
-//        binding.eventListView.layoutManager = LinearLayoutManager(this)
-//        binding.eventListView.adapter = adapter
     }
 }

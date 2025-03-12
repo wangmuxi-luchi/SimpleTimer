@@ -19,41 +19,44 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 使用 View Binding 绑定布局
+        setupBinding()
+        handleWindowInsets()
+        setupButtonListeners()
+    }
+
+    private fun setupBinding() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         enableEdgeToEdge()
+    }
 
+    private fun handleWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+    }
 
-        // 为打开记录页面按钮添加点击事件监听器
-        binding.openRecordActivityButton.setOnClickListener {
-            // 获取Dao实例
+    private fun setupButtonListeners() {
+        binding.openRecordActivityButton.setOnClickListener { launchTimeRecordActivity() }
+        binding.openEventListActivityButton.setOnClickListener { launchEventListActivity() }
+    }
+
+    private fun launchTimeRecordActivity() {
+        lifecycleScope.launch {
             val eventDao = MyDatabase.getDatabase(application).eventDao()
-            // 异步查询事件,并打开记录页面
-            lifecycleScope.launch {
-                // 启动一个异步任务，获取事件
-                val allEvents = eventDao.getAllEvents().firstOrNull()
-                //回到主线程,找到结束时间最大的项目
-                val latestEvent = allEvents?.maxByOrNull { it.endTime.time }
-                // 启动记录页面
-                val intent = Intent(this@MainActivity, TimeRecordActivity::class.java)
-                latestEvent?.let {
-                    intent.putExtra("startTime", it.endTime.time)
-                }
-                startActivity(intent)
+            val allEvents = eventDao.getAllEvents().firstOrNull()
+            val latestEvent = allEvents?.maxByOrNull { it.endTime.time }
+            
+            Intent(this@MainActivity, TimeRecordActivity::class.java).apply {
+                latestEvent?.let { putExtra("startTime", it.endTime.time) }
+                startActivity(this)
             }
         }
+    }
 
-        // 为打开事件列表页面按钮添加点击事件监听器
-        binding.openEventListActivityButton.setOnClickListener {
-            val intent = Intent(this, EventListActivity::class.java)
-            startActivity(intent)
-        }
+    private fun launchEventListActivity() {
+        startActivity(Intent(this, EventListActivity::class.java))
     }
 }

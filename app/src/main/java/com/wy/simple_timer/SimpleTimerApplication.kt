@@ -2,6 +2,7 @@ package com.wy.simple_timer
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -36,8 +37,11 @@ class SimpleTimerApplication : Application() {
         }
     }
 
-    private  fun insertDefaultCategories() {
-        val defaultCategories = arrayOf(
+    private suspend fun insertDefaultCategories() {
+        // 替换前直接使用 categoryDao
+        // 替换后使用服务调用
+        
+        listOf(
             "睡觉" to "#4CAF50",
             "锻炼" to "#4CAF50",
             "吃饭" to "#4CAF50",
@@ -51,10 +55,12 @@ class SimpleTimerApplication : Application() {
             "其他" to "#9E9D24",
             "娱乐" to "#FF4081",
             "垃圾时间" to "#B71C1C"
-        )
-
-        defaultCategories.forEachIndexed { index, (name, color) ->
-            database.categoryDao().insertDefaultCategory(name, color, index, false, -1)
+        ).forEach { category ->
+            val intent = Intent(this, DatabaseManagementService::class.java).apply {
+                action = "INSERT_CATEGORY"
+                putExtra("object", category)
+            }
+            startService(intent)
         }
     }
 }

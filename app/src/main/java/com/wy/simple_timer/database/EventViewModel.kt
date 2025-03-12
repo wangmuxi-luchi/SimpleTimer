@@ -1,8 +1,10 @@
 package com.wy.simple_timer.database
 
 import android.app.Application
+import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.wy.simple_timer.DatabaseManagementService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -19,8 +21,13 @@ class EventViewModel(
     fun getEventDao() = eventDao
     fun getEvents() = events
 
-    fun insertEvent(event: Event) = viewModelScope.launch {
-        eventDao.insertEvent(event)
+    fun insertEvent(event: Event){
+        // 替换为服务调用
+        val intent = Intent(getApplication(), DatabaseManagementService::class.java).apply {
+            action = "INSERT_EVENT"
+            putExtra("object", event)
+        }
+        getApplication<Application>().startService(intent)
     }
 
     fun deleteEvent(eventId: Long) = viewModelScope.launch {

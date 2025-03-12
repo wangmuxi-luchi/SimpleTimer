@@ -25,47 +25,79 @@ class CategoryManagementActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setupBinding()
+        handleWindowInsets()
+        setupViewModel()
+        setupRecyclerView()
+        setupAdapterCallbacks()
+    }
+
+    private fun setupBinding() {
         binding = ActivityCategoryManagementBinding.inflate(layoutInflater)
         setContentView(binding.root)
+    }
 
+    private fun handleWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+    }
 
-        // 设置 RecyclerView 的布局管理器为 LinearLayoutManager, 垂直方向
-        val recyclerView = binding.categoryList
-        recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        // 设置适配器
-        viewmodel = ViewModelProvider( this )[CategoryViewModel::class.java]
+    private fun setupViewModel() {
+        viewmodel = ViewModelProvider(this)[CategoryViewModel::class.java]
         viewmodel.setCategories(viewmodel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
-        categoryAdapter = CategoryAdapterCM()
-        recyclerView.adapter = categoryAdapter
-        // 将数据加载到适配器中
+    }
+
+    private fun setupRecyclerView() {
+        binding.categoryList.apply {
+            layoutManager = LinearLayoutManager(
+                this@CategoryManagementActivity,
+                LinearLayoutManager.VERTICAL, 
+                false
+            )
+            adapter = CategoryAdapterCM().also { 
+                categoryAdapter = it 
+            }
+        }
+        observeCategories()
+    }
+
+    private fun observeCategories() {
         lifecycleScope.launch {
             viewmodel.getCategories()?.collect { categories ->
                 categoryAdapter.setData(categories)
             }
         }
-        // 设置适配器的回调函数,打开CategoryDetailActivity
-        categoryAdapter.setOnOtherItemClickListener { categoryID ->
-            val intent = Intent(this, CategoryDetailActivity::class.java)
-            intent.putExtra("categoryID", categoryID)
-            startActivity(intent)
-        }
-        // 点击添加按钮,弹出添加分类的对话框
-        categoryAdapter.setOnLastItemClickListener {
-            showAddCategoryDialog()
-        }
-        // 绑定适配器的回调函数,更新分类的position
-        categoryAdapter.setOnBindViewHolder { category, position ->
-            if (position != category.position) {
-                Log.d("CategoryManagementActivity", "updateCategoryPosition: $category, $position")
-                viewmodel.updateCategory(category.id, category.categoryName, category.categoryColor, position, category.archived, category.parentId)
+    }
+
+    private fun setupAdapterCallbacks() {
+        categoryAdapter.apply {
+            setOnOtherItemClickListener { categoryID ->
+                startActivity(
+                    Intent(this@CategoryManagementActivity, CategoryDetailActivity::class.java).apply {
+                        putExtra("categoryID", categoryID)
+                    }
+                )
+            }
+            
+            setOnLastItemClickListener { showAddCategoryDialog() }
+            
+            setOnBindViewHolder { category, position ->
+                if (position != category.position) {
+                    Log.d("CategoryManagementActivity", "updateCategoryPosition: $category, $position")
+                    viewmodel.updateCategory(
+                        category.id,
+                        category.categoryName,
+                        category.categoryColor,
+                        position,
+                        category.archived,
+                        category.parentId
+                    )
+                }
             }
         }
-
     }
     private lateinit var addCategoryDialog: AlertDialog
     private lateinit var addCategoryInput: EditText

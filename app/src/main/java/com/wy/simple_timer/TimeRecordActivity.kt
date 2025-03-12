@@ -27,73 +27,84 @@ class TimeRecordActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setupBinding()
+        handleWindowInsets()
+        setupViewModel()
+        setupRecyclerView()
+        setupTimePickers()
+        setupButtonListeners()
+        observeCategories()
+    }
+
+    private fun setupBinding() {
         binding = ActivityTimeRecordBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         enableEdgeToEdge()
+    }
 
+    private fun handleWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        categoryviewmodel = ViewModelProvider( this )[CategoryViewModel::class.java]
+    }
+
+    private fun setupViewModel() {
+        categoryviewmodel = ViewModelProvider(this)[CategoryViewModel::class.java]
         categoryviewmodel.setCategories(categoryviewmodel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
-        categoryAdapter = CategoryAdapterTR()
+    }
 
-        // 设置 RecyclerView 的布局管理器为 GridLayoutManager，每列显示 4 个元素
-        val recyclerView = binding.categoryList
-        recyclerView.layoutManager = GridLayoutManager(this, 4)
-        recyclerView.adapter = categoryAdapter
+    private fun setupRecyclerView() {
+        binding.categoryList.apply {
+            layoutManager = GridLayoutManager(this@TimeRecordActivity, 4)
+            adapter = CategoryAdapterTR().also {
+                categoryAdapter = it
+                it.setOnLastItemClickListener {
+                    startActivity(Intent(this@TimeRecordActivity, CategoryManagementActivity::class.java))
+                }
+            }
+        }
+    }
 
-        val startTimePicker = binding.startTimePicker
-        val endTimePicker = binding.endTimePicker
-
-        startTimePicker.setIs24HourView(true)
-        endTimePicker.setIs24HourView(true)
-
+    private fun setupTimePickers() {
         val calendar = Calendar.getInstance()
-        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
-        val currentMinute = calendar.get(Calendar.MINUTE)
+        val (startPicker, endPicker) = listOf(binding.startTimePicker, binding.endTimePicker)
 
-        // 获取传入的开始时间
-        val startTimeMillis = intent.getLongExtra("startTime", -1)
-        if (startTimeMillis != -1L) {
-            calendar.timeInMillis = startTimeMillis
-            startTimePicker.hour = calendar.get(Calendar.HOUR_OF_DAY)
-            startTimePicker.minute = calendar.get(Calendar.MINUTE)
-        } else {
-            startTimePicker.hour = currentHour
-            startTimePicker.minute = currentMinute
+        startPicker.apply {
+            setIs24HourView(true)
+            hour = calendar.get(Calendar.HOUR_OF_DAY)
+            minute = calendar.get(Calendar.MINUTE)
         }
 
-        endTimePicker.hour = currentHour
-        endTimePicker.minute = currentMinute
-
-        binding.backButton.setOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
+        endPicker.apply {
+            setIs24HourView(true)
+            hour = calendar.get(Calendar.HOUR_OF_DAY)
+            minute = calendar.get(Calendar.MINUTE)
         }
 
+        // 处理传入的开始时间
+        intent.getLongExtra("startTime", -1).takeIf { it != -1L }?.let {
+            calendar.timeInMillis = it
+            startPicker.hour = calendar.get(Calendar.HOUR_OF_DAY)
+            startPicker.minute = calendar.get(Calendar.MINUTE)
+        }
+    }
+
+    private fun setupButtonListeners() {
+        binding.backButton.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+        listOf(binding.saveButtonTop, binding.saveButtonBtm).forEach { btn ->
+            btn.setOnClickListener { saveRecord(binding.startTimePicker, binding.endTimePicker) }
+        }
+    }
+
+    private fun observeCategories() {
         lifecycleScope.launch {
             categoryviewmodel.getCategories()?.collect { categories ->
                 categoryAdapter.setData(categories)
             }
         }
-
-        binding.saveButtonTop.setOnClickListener {
-            saveRecord(startTimePicker, endTimePicker)
-        }
-        binding.saveButtonBtm.setOnClickListener {
-            saveRecord(startTimePicker, endTimePicker)
-        }
-
-        // 为 GridView 的最后一个元素添加点击事件监听器
-        categoryAdapter.setOnLastItemClickListener{
-            val intent = Intent(this, CategoryManagementActivity::class.java)
-            startActivity(intent)
-        }
     }
-
 
     private fun saveRecord(startTimePicker: TimePicker, endTimePicker: TimePicker) {
         val calendar = Calendar.getInstance()
