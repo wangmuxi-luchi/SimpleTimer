@@ -15,9 +15,8 @@ import androidx.lifecycle.lifecycleScope
 import com.github.gzuliyujiang.colorpicker.ColorPicker
 import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.CategoryDao
-import com.wy.simple_timer.database.CategoryViewModel
 import com.wy.simple_timer.database.EventDao
-import com.wy.simple_timer.database.EventViewModel
+import com.wy.simple_timer.viewmodel.EventViewModel
 import com.wy.simple_timer.database.MyDatabase
 import com.wy.simple_timer.databinding.ActivityCategoryDetailBinding
 import kotlinx.coroutines.flow.firstOrNull

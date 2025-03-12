@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.gzuliyujiang.colorpicker.ColorPicker
 import com.wy.simple_timer.adapter.CategoryAdapterCM
 import com.wy.simple_timer.database.Category
-import com.wy.simple_timer.database.CategoryViewModel
+import com.wy.simple_timer.viewmodel.CategoryViewModel
 import com.wy.simple_timer.databinding.ActivityCategoryManagementBinding
 import kotlinx.coroutines.launch
 

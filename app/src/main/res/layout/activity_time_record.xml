@@ -63,74 +63,17 @@
             android:layout_marginBottom="16dp" />
 
         <!-- 时间选择器 -->
-        <LinearLayout
+        <FrameLayout
+            android:id="@+id/time_picker_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:baselineAligned="false"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"/>
 
-            <!-- 开始时间 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:padding="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/StartTimeString"
-                    android:layout_marginBottom="4dp"
-                    android:layout_gravity="center_horizontal"
-                    android:gravity="center_horizontal"/>
-
-                <TimePicker
-                    android:id="@+id/startTimePicker"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:timePickerMode="spinner"/>
-            </LinearLayout>
-
-            <!-- 结束时间 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:padding="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/EndTime"
-                    android:layout_marginBottom="4dp"
-                    android:layout_gravity="center_horizontal"
-                    android:gravity="center_horizontal"/>
-
-                <TimePicker
-                    android:id="@+id/endTimePicker"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:timePickerMode="spinner"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- 分类选择 -->
-        <TextView
+        <!-- 使用 FrameLayout 加载分类选择 Fragment -->
+        <FrameLayout
+            android:id="@+id/category_picker_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/Category"
-            android:layout_marginBottom="8dp" />
-    
-        <!-- 使用 RecyclerView 加载分类数据 -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/category_list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:layout_marginBottom="16dp" />
+            android:layout_height="wrap_content"/>
     
         <!-- 备注输入框 -->
         <EditText

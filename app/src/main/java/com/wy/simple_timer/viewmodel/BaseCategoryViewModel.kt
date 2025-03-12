@@ -1,8 +1,10 @@
-package com.wy.simple_timer.database
+package com.wy.simple_timer.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.wy.simple_timer.database.Category
+import com.wy.simple_timer.database.MyDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 

@@ -8,12 +8,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.wy.simple_timer.R
-import com.wy.simple_timer.database.CategoryViewModel
 import com.wy.simple_timer.database.Event
-import com.wy.simple_timer.database.EventDao
 import com.wy.simple_timer.database.MyDatabase
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat

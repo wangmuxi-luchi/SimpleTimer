@@ -2,38 +2,28 @@ package com.wy.simple_timer
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.widget.TimePicker
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
-import com.wy.simple_timer.adapter.CategoryAdapterTR
-import com.wy.simple_timer.database.CategoryViewModel
 import com.wy.simple_timer.database.Event
-import com.wy.simple_timer.database.EventViewModel
 import com.wy.simple_timer.databinding.ActivityTimeRecordBinding
-import kotlinx.coroutines.launch
-import java.util.Calendar
+import com.wy.simple_timer.fragment.CategoryPickerFragment
+import com.wy.simple_timer.fragment.TimePickerFragment
 
 class TimeRecordActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTimeRecordBinding
-    private lateinit var categoryAdapter: CategoryAdapterTR
-    private lateinit var categoryviewmodel: CategoryViewModel
+    private lateinit var timePickerFragment: TimePickerFragment
+    private lateinit var categoryPickerFragment: CategoryPickerFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupBinding()
         handleWindowInsets()
-        setupViewModel()
-        setupRecyclerView()
-        setupTimePickers()
+        setupTimePickerFragment()
+        setupCategoryPickerFragment()
         setupButtonListeners()
-        observeCategories()
     }
 
     private fun setupBinding() {
@@ -50,78 +40,43 @@ class TimeRecordActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupViewModel() {
-        categoryviewmodel = ViewModelProvider(this)[CategoryViewModel::class.java]
-        categoryviewmodel.setCategories(categoryviewmodel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
-    }
-
-    private fun setupRecyclerView() {
-        binding.categoryList.apply {
-            layoutManager = GridLayoutManager(this@TimeRecordActivity, 4)
-            adapter = CategoryAdapterTR().also {
-                categoryAdapter = it
-                it.setOnLastItemClickListener {
-                    startActivity(Intent(this@TimeRecordActivity, CategoryManagementActivity::class.java))
-                }
-            }
-        }
-    }
-
-    private fun setupTimePickers() {
-        val calendar = Calendar.getInstance()
-        val (startPicker, endPicker) = listOf(binding.startTimePicker, binding.endTimePicker)
-
-        startPicker.apply {
-            setIs24HourView(true)
-            hour = calendar.get(Calendar.HOUR_OF_DAY)
-            minute = calendar.get(Calendar.MINUTE)
-        }
-
-        endPicker.apply {
-            setIs24HourView(true)
-            hour = calendar.get(Calendar.HOUR_OF_DAY)
-            minute = calendar.get(Calendar.MINUTE)
-        }
-
-        // 处理传入的开始时间
+    private fun setupTimePickerFragment() {
+        timePickerFragment = TimePickerFragment()
+        val bundle = Bundle()
         intent.getLongExtra("startTime", -1).takeIf { it != -1L }?.let {
-            calendar.timeInMillis = it
-            startPicker.hour = calendar.get(Calendar.HOUR_OF_DAY)
-            startPicker.minute = calendar.get(Calendar.MINUTE)
+            bundle.putLong("startTime", it)
         }
+        timePickerFragment.arguments = bundle
+
+        supportFragmentManager.beginTransaction()
+           .replace(R.id.time_picker_container, timePickerFragment)
+           .commit()
+    }
+
+    private fun setupCategoryPickerFragment() {
+        categoryPickerFragment = CategoryPickerFragment()
+        supportFragmentManager.beginTransaction()
+           .replace(R.id.category_picker_container, categoryPickerFragment)
+           .commit()
     }
 
     private fun setupButtonListeners() {
         binding.backButton.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
         listOf(binding.saveButtonTop, binding.saveButtonBtm).forEach { btn ->
-            btn.setOnClickListener { saveRecord(binding.startTimePicker, binding.endTimePicker) }
+            btn.setOnClickListener { saveRecord() }
         }
     }
 
-    private fun observeCategories() {
-        lifecycleScope.launch {
-            categoryviewmodel.getCategories()?.collect { categories ->
-                categoryAdapter.setData(categories)
-            }
-        }
-    }
-
-    private fun saveRecord(startTimePicker: TimePicker, endTimePicker: TimePicker) {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, startTimePicker.hour)
-        calendar.set(Calendar.MINUTE, startTimePicker.minute)
-        val startTime = calendar.time
-
-        calendar.set(Calendar.HOUR_OF_DAY, endTimePicker.hour)
-        calendar.set(Calendar.MINUTE, endTimePicker.minute)
-        val endTime = calendar.time
+    private fun saveRecord() {
+        val startTime = timePickerFragment.getStartTime()
+        val endTime = timePickerFragment.getEndTime()
 
         if (startTime.after(endTime)) {
             Toast.makeText(this, "开始时间不能晚于结束时间", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val selectedCategoryId  = categoryAdapter.getCurrentCategory()
+        val selectedCategoryId = categoryPickerFragment.getCurrentCategory()
 
         if (selectedCategoryId == null) {
             Toast.makeText(this, "未找到对应的分类", Toast.LENGTH_SHORT).show()
@@ -131,15 +86,11 @@ class TimeRecordActivity : AppCompatActivity() {
 
         // 保存记录到数据库
         val event = Event(0, startTime, endTime, selectedCategoryId, remark)
-        val eventviewmodel = ViewModelProvider( this )[EventViewModel::class.java]
-        eventviewmodel.insertEvent(event)
-        Log.d("TimeRecordActivity", "保存记录成功")
-        Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show()
-
-//        eventDao.insertEvent(Event(0, startTime, endTime, categoryId, remark))
-
-
+        val intent = Intent(this, DatabaseManagementService::class.java).apply {
+            action = "INSERT_EVENT"
+            putExtra("object", event)
+        }
+        this.startService(intent)
         onBackPressedDispatcher.onBackPressed()
-
     }
 }

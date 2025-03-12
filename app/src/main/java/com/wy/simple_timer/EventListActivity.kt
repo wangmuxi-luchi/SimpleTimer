@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.wy.simple_timer.adapter.EventAdapterEL
-import com.wy.simple_timer.database.EventViewModel
+import com.wy.simple_timer.viewmodel.EventViewModel
 import com.wy.simple_timer.databinding.ActivityEventListBinding
 import kotlinx.coroutines.launch
 

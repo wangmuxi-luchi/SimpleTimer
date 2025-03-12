@@ -3,16 +3,18 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:layout_margin="10dp">
+    android:background="@drawable/rounded_corner_background"
+    >
 
+    <!-- 子项内容 -->
     <TextView
         android:id="@+id/category_text"
+        android:text="@string/Category"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:textSize="16sp"
         android:gravity="center_horizontal"
-        android:padding="8dp"
-        android:layout_margin="5dp"/>
+        android:paddingVertical="5dp"/>
 
     <ImageView
         android:id="@+id/dot1"

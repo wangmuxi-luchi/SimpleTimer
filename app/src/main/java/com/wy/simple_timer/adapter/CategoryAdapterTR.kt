@@ -1,5 +1,7 @@
 package com.wy.simple_timer.adapter
 
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -38,8 +40,7 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
         return newCategories + Category(0, "编辑分类", "#808080", newCategories.size, false, -1)
     }
 
-    inner class ViewHolder(itemView: View) : BaseCategoryAdapterRV.ViewHolder(itemView)
-    {
+    inner class ViewHolder(itemView: View) : BaseCategoryAdapterRV.ViewHolder(itemView){
         private val categoryText: TextView = itemView.findViewById(R.id.category_text)
         private val dot1: ImageView = itemView.findViewById(R.id.dot1)
         private val dot2: ImageView = itemView.findViewById(R.id.dot2)
@@ -75,7 +76,9 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
 //                }
             }
             try {
-                categoryText.setBackgroundColor(android.graphics.Color.parseColor(category.categoryColor))
+                val shapeDrawable = itemView.getBackground() as GradientDrawable
+                shapeDrawable.setColor(Color.parseColor(category.categoryColor))  // 设置新的颜色
+//                categoryText.setBackgroundColor(android.graphics.Color.parseColor(category.categoryColor))
                 categoryText.textSize = 12f
                 categoryText.setSingleLine(true)
                 categoryText.ellipsize = android.text.TextUtils.TruncateAt.END

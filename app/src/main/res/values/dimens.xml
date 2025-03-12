@@ -1,0 +1,4 @@
+<resources>
+    <!-- 小间隔，例如 4dp -->
+    <dimen name="small_spacing">3dp</dimen>
+</resources>
