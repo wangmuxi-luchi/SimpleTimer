@@ -1,4 +1,5 @@
 [versions]
+colorpicker = "4.1.14"
 agp = "8.8.0"
 kotlin = "2.1.0"
 junit = "4.13.2"
@@ -21,6 +22,7 @@ roomPaging = "2.6.1"
 datastorePreferences = "1.1.0-alpha03"
 
 [libraries]
+addresspicker = { module = "com.github.gzu-liyujiang.AndroidPicker:ColorPicker", version.ref = "colorpicker" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.12.0" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
 androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "roomPaging" }

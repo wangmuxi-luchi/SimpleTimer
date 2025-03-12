@@ -6,6 +6,7 @@ plugins {
     id("com.google.devtools.ksp")  version "2.1.0-1.0.29"
     id("androidx.room") version "2.6.1"
     //room end
+
 }
 
 android {
@@ -95,4 +96,6 @@ dependencies {
 
     // optional - Paging 3 Integration
     implementation(libs.androidx.room.paging)
+
+    implementation(libs.addresspicker)
 }

@@ -42,6 +42,10 @@ class CategoryViewModel(application: Application) : AndroidViewModel(application
     fun getCategoriesByParentId(parentId: Long) = viewModelScope.launch {
         categoryDao.getCategoriesByParentId(parentId)
     }
+//    getCategoryById
+    fun getCategoryById(categoryId: Long) = viewModelScope.launch {
+        categoryDao.getCategoriesById(categoryId)
+    }
 //    fun getCategoriesByParentIdOrderedByPosition(parentId: Long) = viewModelScope.launch {
 //        categoryDao.getCategoriesByParentIdOrderedByPosition(parentId)
 //    }

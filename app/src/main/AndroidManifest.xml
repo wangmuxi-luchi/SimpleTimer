@@ -36,7 +36,9 @@
         <activity
             android:name=".CategoryDetailActivity"
             android:exported="false" />
-
+        <!-- 移除前台服务类型声明 -->
+        <service
+            android:name=".DatabaseManagementService"
+            android:exported="false"/>
     </application>
-
 </manifest>

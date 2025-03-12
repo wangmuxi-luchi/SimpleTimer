@@ -14,6 +14,10 @@ interface EventDao {
     @Query("DELETE FROM events WHERE id = :eventId")
     suspend fun deleteEvent(eventId: Long)
 
+    // 按分类ID删除事件
+    @Query("DELETE FROM events WHERE categoryId = :categoryId")
+    suspend fun deleteEventsByCategory(categoryId: Long)
+
     @Query("UPDATE events SET startTime = :startTime, endTime = :endTime, categoryId = :categoryId, notes = :notes WHERE id = :eventId")
     suspend fun updateEvent(
         eventId: Long,

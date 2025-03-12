@@ -3,6 +3,7 @@ package com.wy.simple_timer.database
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -27,7 +28,10 @@ interface CategoryDao {
     fun insertDefaultCategory(name: String, color: String, position: Int, archived: Boolean, parentId: Long): Long
 
     @Query("SELECT * FROM categories WHERE id = :categoryId")
-    fun getCategoryById(categoryId: Long): Flow<List<Category>>
+    fun getCategoriesById(categoryId: Long): Flow<List<Category>>
+
+    @Query("SELECT * FROM categories WHERE id = :categoryId")
+    fun getCategoryById(categoryId: Long): Flow<Category>
 
     // 获取所有的一级分类，即 parentId 为 -1 的分类, 按 position 排序, 未归档的，即 archived = 0
     @Query("SELECT * FROM categories WHERE parentId = -1 AND archived = 0 ORDER BY position ASC")
@@ -46,4 +50,15 @@ interface CategoryDao {
 
     @Query("SELECT * FROM categories")
     fun getAllCategories(): Flow<List<Category>>
+
+    // 新增级联删除方法
+    @Transaction
+    @Query("WITH RECURSIVE subcategories(id) AS (" +
+            "SELECT id FROM categories WHERE id = :parentId " +
+            "UNION ALL " +
+            "SELECT c.id FROM categories c " +
+            "INNER JOIN subcategories s ON c.parentId = s.id" +
+            ") " +
+            "DELETE FROM categories WHERE id IN (SELECT id FROM subcategories)")
+    suspend fun deleteCategoryAndSubcategories(parentId: Long)
 }

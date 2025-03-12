@@ -13,6 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import com.wy.simple_timer.R
 import com.wy.simple_timer.database.CategoryViewModel
 import com.wy.simple_timer.database.Event
+import com.wy.simple_timer.database.EventDao
+import com.wy.simple_timer.database.MyDatabase
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -23,6 +25,7 @@ class EventAdapterEL(private val context: AppCompatActivity) : BaseEventAdapterR
         private val activityTextView: TextView = itemView.findViewById(R.id.activity)
         private val durationTextView: TextView = itemView.findViewById(R.id.duration)
         private val colorDotImageView: ImageView = itemView.findViewById(R.id.color_dot)
+
         override fun bind(event: Event, payloads: MutableList<Any>) {
             // 定义时间格式化器
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -34,27 +37,26 @@ class EventAdapterEL(private val context: AppCompatActivity) : BaseEventAdapterR
                 context.getString(R.string.time_range, startTimeFormatted, endTimeFormatted)
 
             // 通过类型 ID 查询活动类型
-            val categoryViewModel = ViewModelProvider( context )[CategoryViewModel::class.java]
-            categoryViewModel.setCategories(categoryViewModel.getCategoryDao().getCategoryById(event.categoryId))
+            val categoryDao = MyDatabase.getDatabase(context).categoryDao()
+            val category = categoryDao.getCategoryById(event.categoryId)
             context.lifecycleScope.launch {
-                categoryViewModel.getCategories()?.collect { categories ->
-                    if (categories.size == 1) {
-                        val category = categories[0]
-                        category.let { category1 ->
-                            try {
-                                val color = Color.parseColor(category1.categoryColor)
-                                colorDotImageView.setColorFilter(color)
-                            } catch (e: IllegalArgumentException) {
-                                e.printStackTrace()
-                            }
-                            category1.categoryName.let {
-                                activityTextView.text = it
-                                return@collect
-                            }
+                category.collect { category ->
+                    category?.let { category1 ->
+                        try {
+                            val color = Color.parseColor(category1.categoryColor)
+                            colorDotImageView.setColorFilter(color)
+                        } catch (e: IllegalArgumentException) {
+                            e.printStackTrace()
+                        }
+                        category1.categoryName.let {
+                            activityTextView.text = it
+                            return@collect
                         }
                     }
-                    throw IllegalArgumentException("Category ID not found")
                 }
+                // 该分类已被删除，删除该类别下的所有事件
+                val eventDao = MyDatabase.getDatabase(context).eventDao()
+                eventDao.deleteEventsByCategory(event.categoryId)
             }
             // 计算活动持续时间
             try {
