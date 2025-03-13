@@ -3,16 +3,18 @@ package com.wy.simple_timer
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.MyDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-private const val DATA_STORE_NAME = "settings"
+private const val DATA_STORE_NAME = "simpletimersettings"
 private val Context.dataStore by preferencesDataStore(name = DATA_STORE_NAME)
 
 class SimpleTimerApplication : Application() {
@@ -29,6 +31,7 @@ class SimpleTimerApplication : Application() {
 
     private suspend fun initializeIfNeeded() {
         val isInitialized = dataStore.data.first()[isInitializedKey] ?: false
+        Log.d("SimpleTimerApplication", "isInitialized: $isInitialized")
         if (!isInitialized) {
             insertDefaultCategories()
             dataStore.edit { settings ->
@@ -40,7 +43,8 @@ class SimpleTimerApplication : Application() {
     private suspend fun insertDefaultCategories() {
         // 替换前直接使用 categoryDao
         // 替换后使用服务调用
-        
+        Log.d("SimpleTimerApplication", "Inserting default categories")
+        var i = 0
         listOf(
             "睡觉" to "#4CAF50",
             "锻炼" to "#4CAF50",
@@ -55,10 +59,18 @@ class SimpleTimerApplication : Application() {
             "其他" to "#9E9D24",
             "娱乐" to "#FF4081",
             "垃圾时间" to "#B71C1C"
-        ).forEach { category ->
+        ).forEach { it ->
+            Log.d("SimpleTimerApplication", "Inserting category: ${it}")
             val intent = Intent(this, DatabaseManagementService::class.java).apply {
                 action = "INSERT_CATEGORY"
-                putExtra("object", category)
+                putExtra("object", Category(
+                    0,
+                    it.first,
+                    it.second,
+                    i++,
+                    false,
+                    -1
+                ))
             }
             startService(intent)
         }

@@ -5,7 +5,7 @@
     <string name="edit">编辑</string>
     <string name="file">归档</string>
     <string name="delete">删除</string>
-    <string name="OpenRecordString">打开记录页面</string>
+    <string name="OpenRecordString">时间记录</string>
     <string name="OpenEventListString">打开事件列表页面</string>
     <string name="BackString">返回</string>
     <string name="AddString">添加</string>
@@ -25,5 +25,6 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="EditString">编辑</string>
     <string name="DeleteString">删除</string>
+    <string name="CategoryManagementString">分类管理</string>
 
 </resources>

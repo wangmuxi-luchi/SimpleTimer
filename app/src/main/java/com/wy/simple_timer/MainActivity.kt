@@ -34,16 +34,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleWindowInsets() {
-//        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
-//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-//            insets
-//        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
     }
 
     private fun setupButtonListeners() {
         binding.openRecordActivityButton.setOnClickListener { launchTimeRecordActivity() }
-        binding.openEventListActivityButton.setOnClickListener { launchEventListActivity() }
+        // 修改后的按钮监听
+        binding.openCategoryManagementButton.setOnClickListener { launchCategoryManagementActivity() }
     }
 
     private fun launchTimeRecordActivity() {
@@ -59,8 +60,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun launchEventListActivity() {
-        startActivity(Intent(this, EventListActivity::class.java))
+    // 新增分类管理跳转方法
+    private fun launchCategoryManagementActivity() {
+        startActivity(Intent(this, CategoryManagementActivity::class.java))
     }
 
     private fun loadEventListFragment() {
