@@ -10,11 +10,22 @@ import com.wy.simple_timer.databinding.FragmentTimePickerBinding
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
+import java.text.SimpleDateFormat
+import android.app.DatePickerDialog
+import android.util.Log
+import java.util.Locale
 
 
 class TimePickerFragment : Fragment() {
-
+    private lateinit var onFragmentReadyListener: ()->Unit
     private lateinit var binding: FragmentTimePickerBinding
+    private val startCalendar = Calendar.getInstance()
+    private val endCalendar = Calendar.getInstance()
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+    fun setOnFragmentReadyListener(listener: ()->Unit) {
+        this.onFragmentReadyListener = listener
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -26,42 +37,102 @@ class TimePickerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupDatePickers()
         setupTimePickers()
+        setupDateClickListeners()
+        onFragmentReadyListener()
+    }
+
+    private fun setupDatePickers() {
+        binding.startDateText.text = dateFormat.format(startCalendar.time)
+        binding.endDateText.text = dateFormat.format(endCalendar.time)
+    }
+
+    private fun setupDateClickListeners() {
+        binding.startDateText.setOnClickListener { showDatePicker(true) }
+        binding.endDateText.setOnClickListener { showDatePicker(false) }
+    }
+
+    private fun showDatePicker(isStartDate: Boolean) {
+        val calendar = if (isStartDate) startCalendar else endCalendar
+        DatePickerDialog(requireContext(), { _, year, month, day ->
+            calendar.set(year, month, day)
+            updateDateTimeDisplay()
+        }, calendar.get(Calendar.YEAR), 
+           calendar.get(Calendar.MONTH),
+           calendar.get(Calendar.DAY_OF_MONTH)).show()
     }
 
     private fun setupTimePickers() {
-        val calendar = Calendar.getInstance()
         val (startPicker, endPicker) = listOf(binding.startTimePicker, binding.endTimePicker)
+        val timeChangedListener = TimePicker.OnTimeChangedListener { picker, hour, minute ->
+            val isStart = picker == binding.startTimePicker
+            val calendar = if (isStart) startCalendar else endCalendar
 
+            val originalDay = calendar.get(Calendar.DAY_OF_MONTH)
+            // 处理跨日逻辑
+            if(hour == 0 && calendar.get(Calendar.HOUR_OF_DAY) == 23){
+                calendar.set(Calendar.HOUR_OF_DAY, 24)
+            }
+            else if(hour == 23 && calendar.get(Calendar.HOUR_OF_DAY) == 0){
+                calendar.set(Calendar.HOUR_OF_DAY, -1)
+            }
+            else{
+                calendar.set(Calendar.HOUR_OF_DAY, hour)
+            }
+            calendar.set(Calendar.MINUTE, minute)
+            
+            if (originalDay != calendar.get(Calendar.DAY_OF_MONTH)) {
+                updateDateTimeDisplay()
+            }
+            
+            updateDurationText()
+        }
+        
         startPicker.apply {
             setIs24HourView(true)
-            hour = calendar.get(Calendar.HOUR_OF_DAY)
-            minute = calendar.get(Calendar.MINUTE)
+            setOnTimeChangedListener(timeChangedListener)
         }
 
         endPicker.apply {
             setIs24HourView(true)
+            setOnTimeChangedListener(timeChangedListener)
+        }
+    }
+
+    private fun updateDateTimeDisplay() {
+        binding.startDateText.text = dateFormat.format(startCalendar.time)
+        binding.endDateText.text = dateFormat.format(endCalendar.time)
+        updateDurationText()
+    }
+    
+    // 获取时间的方法
+    fun getStartTime(): Date = startCalendar.time
+    fun getEndTime(): Date = endCalendar.time
+    
+    // 设置时间的方法
+    fun setStartTime(time: Date) {
+        val calendar = Calendar.getInstance()
+        calendar.time = time
+        binding.startTimePicker.apply {
             hour = calendar.get(Calendar.HOUR_OF_DAY)
             minute = calendar.get(Calendar.MINUTE)
         }
-
-        // 处理传入的开始时间
-        arguments?.getLong("startTime", -1)?.takeIf { it != -1L }?.let {
-            calendar.timeInMillis = it
-            startPicker.hour = calendar.get(Calendar.HOUR_OF_DAY)
-            startPicker.minute = calendar.get(Calendar.MINUTE)
-        }
-
-        val timeChangedListener = TimePicker.OnTimeChangedListener { _, _, _ ->
-            updateDurationText()
-        }
-
-        binding.startTimePicker.setOnTimeChangedListener(timeChangedListener)
-        binding.endTimePicker.setOnTimeChangedListener(timeChangedListener)
-        
-        // 初始化时更新一次
-        updateDurationText()
+        startCalendar.time = time
+        updateDateTimeDisplay()
     }
+
+    fun setEndTime(time: Date) {
+        val calendar = Calendar.getInstance()
+        calendar.time = time
+        binding.endTimePicker.apply {
+            hour = calendar.get(Calendar.HOUR_OF_DAY)
+            minute = calendar.get(Calendar.MINUTE)
+        }
+        endCalendar.time = time
+        updateDateTimeDisplay()
+    }
+
 
     private fun updateDurationText() {
         val startTime = getStartTime()
@@ -75,38 +146,5 @@ class TimePickerFragment : Fragment() {
             hours > 0 -> "${hours}小时${minutes.toString().padStart(2, '0')}分钟"
             else -> "${minutes}分钟"
         }
-    }
-    fun setStartTime(startTime: Date) {
-        val calendar = Calendar.getInstance()
-        calendar.time = startTime
-        binding.startTimePicker.apply {
-            setIs24HourView(true)
-            hour = calendar.get(Calendar.HOUR_OF_DAY)
-            minute = calendar.get(Calendar.MINUTE)
-        }
-    }
-
-    fun setEndTime(endTime: Date) {
-        val calendar = Calendar.getInstance()
-        calendar.time = endTime
-        binding.endTimePicker.apply {
-            setIs24HourView(true)
-            hour = calendar.get(Calendar.HOUR_OF_DAY)
-            minute = calendar.get(Calendar.MINUTE)
-        }
-    }
-
-    fun getStartTime(): java.util.Date {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, binding.startTimePicker.hour)
-        calendar.set(Calendar.MINUTE, binding.startTimePicker.minute)
-        return calendar.time
-    }
-
-    fun getEndTime(): java.util.Date {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, binding.endTimePicker.hour)
-        calendar.set(Calendar.MINUTE, binding.endTimePicker.minute)
-        return calendar.time
     }
 }

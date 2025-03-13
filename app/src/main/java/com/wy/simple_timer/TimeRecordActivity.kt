@@ -11,6 +11,7 @@ import com.wy.simple_timer.database.Event
 import com.wy.simple_timer.databinding.ActivityTimeRecordBinding
 import com.wy.simple_timer.fragment.CategoryPickerFragment
 import com.wy.simple_timer.fragment.TimePickerFragment
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 class TimeRecordActivity : AppCompatActivity() {
@@ -42,21 +43,24 @@ class TimeRecordActivity : AppCompatActivity() {
     }
 
     private fun setupTimePickerFragment() {
-        timePickerFragment = TimePickerFragment()
-        
-        val bundle = Bundle()
-        intent.getLongExtra("startTime", -1).takeIf { it != -1L }?.let {
-            bundle.putLong("startTime", it)
-        }
-        timePickerFragment.arguments = bundle
+        timePickerFragment = TimePickerFragment().apply {
+            setOnFragmentReadyListener {
+                val startTime = intent.getLongExtra("startTime", -1)
+                if (startTime != -1L) {
+                    setStartTime(Date(startTime))
+                }
+            }
 
+        }
         supportFragmentManager.beginTransaction()
            .replace(R.id.time_picker_container, timePickerFragment)
            .commit()
     }
 
     private fun setupCategoryPickerFragment() {
-        categoryPickerFragment = CategoryPickerFragment()
+        categoryPickerFragment = CategoryPickerFragment().apply {
+            setOnFragmentReadyListener {}
+        }
         supportFragmentManager.beginTransaction()
            .replace(R.id.category_picker_container, categoryPickerFragment)
            .commit()

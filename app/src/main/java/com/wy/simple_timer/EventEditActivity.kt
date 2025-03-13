@@ -16,23 +16,36 @@ import com.wy.simple_timer.databinding.ActivityEventEditBinding
 import com.wy.simple_timer.fragment.CategoryPickerFragment
 import com.wy.simple_timer.fragment.TimePickerFragment
 import com.wy.simple_timer.viewmodel.EventViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 class EventEditActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEventEditBinding
     private lateinit var timePickerFragment: TimePickerFragment
     private lateinit var categoryPickerFragment: CategoryPickerFragment
     private lateinit var event: Event
+    private var isQueryRunning = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("EventEditActivity", "onCreate")
         setupBinding()
-        handleWindowInsets()
-        setupTimePickerFragment()
-        setupCategoryPickerFragment()
         setupButtonListeners()
-        getEventFromIntent()
+        handleWindowInsets()
+        lifecycleScope.launch {
+            getEventFromIntent()
+            Log.d("EventEditActivity", "getEventFromIntent")
+            withContext(Dispatchers.Main) {
+                setupTimePickerFragment()
+                setupCategoryPickerFragment()
+                initNotes()
+            }
+        }
     }
 
     private fun setupBinding() {
@@ -50,14 +63,26 @@ class EventEditActivity : AppCompatActivity() {
     }
 
     private fun setupTimePickerFragment() {
-        timePickerFragment = TimePickerFragment()
+        timePickerFragment = TimePickerFragment().apply {
+            setOnFragmentReadyListener {
+                Log.d("EventEditActivity", "onTimePickerFragmentReady")
+                initializeTimePickerWithEvent()
+                Log.d("EventEditActivity", "finish initializeTimePickerWithEvent")
+            }
+        }
         supportFragmentManager.beginTransaction()
            .replace(R.id.time_picker_container, timePickerFragment)
            .commit()
     }
 
     private fun setupCategoryPickerFragment() {
-        categoryPickerFragment = CategoryPickerFragment()
+        categoryPickerFragment = CategoryPickerFragment().apply {
+            setOnFragmentReadyListener {
+                Log.d("EventEditActivity", "onCategoryPickerFragment")
+                initializeCategoryPickerWithEvent()
+                Log.d("EventEditActivity", "finish initializeCategoryPickerWithEvent")
+            }
+        }
         supportFragmentManager.beginTransaction()
            .replace(R.id.category_picker_container, categoryPickerFragment)
            .commit()
@@ -71,11 +96,13 @@ class EventEditActivity : AppCompatActivity() {
         
         // 新增删除按钮监听
         binding.deleteButton.setOnClickListener {
-            deleteCurrentEvent()
+            lifecycleScope.launch {
+                deleteCurrentEvent()
+            }
         }
     }
 
-    private fun deleteCurrentEvent() {
+    private suspend fun deleteCurrentEvent() {
         val deleteIntent = Intent(this, DatabaseManagementService::class.java).apply {
             action = "DELETE_EVENT"
             putExtra("eventId", event.id)
@@ -87,27 +114,38 @@ class EventEditActivity : AppCompatActivity() {
             Toast.LENGTH_SHORT
         ).show()
         onBackPressedDispatcher.onBackPressed()
+        Log.d("EventEditActivity", "Delete Event")
     }
 
-    // 修改 getEventFromIntent 方法：
-    private fun getEventFromIntent() {
+    private suspend fun getEventFromIntent() {
         val eventId = intent.getLongExtra("eventId", -1L)
         if (eventId == -1L) throw IllegalArgumentException("Event ID must be provided")
-        
-        lifecycleScope.launch {
-            val eventDao = MyDatabase.getDatabase(this@EventEditActivity).eventDao()
-            event = eventDao.getEventById(eventId).firstOrNull() ?: throw IllegalArgumentException("Event not found")
-            initializeUIWithEvent()
-        }
+
+        val eventDao = MyDatabase.getDatabase(this@EventEditActivity).eventDao()
+        event = eventDao.getEventById(eventId).firstOrNull()
+            ?: throw IllegalArgumentException("Event not found")
     }
 
-    private fun initializeUIWithEvent() {
+    private fun initNotes() {
+        binding.notesEditText.setText(event.notes)
+        Log.d("EventEditActivity", "initNotes Event : ${event}")
+    }
+    private fun initializeTimePickerWithEvent() {
         timePickerFragment.setStartTime(event.startTime)
         timePickerFragment.setEndTime(event.endTime)
-        Log.d("EventEditActivity", "Event : ${event}")
-        categoryPickerFragment.setCurrentCategory(event.categoryId)
-        binding.notesEditText.setText(event.notes)
+        Log.d("EventEditActivity", "timePickerFragmentinit Event : ${event}")
     }
+    private fun initializeCategoryPickerWithEvent() {
+        categoryPickerFragment.setCurrentCategory(event.categoryId)
+        Log.d("EventEditActivity", "categoryPickerFragmentinit Event : ${event}")
+    }
+//    private fun initializeUIWithEvent() {
+//        timePickerFragment.setStartTime(event.startTime)
+//        timePickerFragment.setEndTime(event.endTime)
+//        Log.d("EventEditActivity", "Event : ${event}")
+//        categoryPickerFragment.setCurrentCategory(event.categoryId)
+//        binding.notesEditText.setText(event.notes)
+//    }
 
     private fun saveEditedEvent() {
         val startTime = timePickerFragment.getStartTime()

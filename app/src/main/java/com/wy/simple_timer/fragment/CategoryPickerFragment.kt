@@ -20,9 +20,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class CategoryPickerFragment : Fragment() {
+    private lateinit var onFragmentReadyListener: () -> Unit
     private lateinit var binding: FragmentCategoryPickerBinding
     private lateinit var categoryAdapter: CategoryAdapterTR
     private lateinit var categoryViewModel: CategoryViewModel
+
+    fun setOnFragmentReadyListener(listener: () -> Unit) {
+        onFragmentReadyListener = listener
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,6 +47,9 @@ class CategoryPickerFragment : Fragment() {
         // 应用自定义的 ItemDecoration 并减小间隔值，这里假设减小到 4dp
         val spacingInPixels = resources.getDimensionPixelSize(R.dimen.small_spacing)
         binding.categoryList.addItemDecoration(SpacingItemDecoration(spacingInPixels))
+
+        Log.d("CategoryPickerFragment", "onViewCreated")
+        onFragmentReadyListener()
     }
 
     private fun setupViewModel() {
@@ -78,7 +86,7 @@ class CategoryPickerFragment : Fragment() {
         return categoryAdapter.getCurrentCategory()
     }
 
-    // 在 CategoryPickerFragment 类中添加新方法
+    // 在 设置当前选中的分类
     fun setCurrentCategory(categoryId: Long) {
         Log.d("CategoryPickerFragment", "setCurrentCategory: $categoryId")
         val categoryDao = MyDatabase.getDatabase(requireContext()).categoryDao()
