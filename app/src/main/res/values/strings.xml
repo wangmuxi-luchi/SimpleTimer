@@ -26,5 +26,7 @@
     <string name="EditString">编辑</string>
     <string name="DeleteString">删除</string>
     <string name="CategoryManagementString">分类管理</string>
+    <string name="backupdatastring">数据备份</string>
+    <string name="restoredata">恢复数据</string>
 
 </resources>

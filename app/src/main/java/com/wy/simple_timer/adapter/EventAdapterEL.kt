@@ -62,14 +62,18 @@ class EventAdapterEL(private val context: AppCompatActivity) : BaseEventAdapterR
             // 计算活动持续时间
             try {
                 val duration = event.endTime.time - event.startTime.time
-                val minutes = duration / (1000 * 60)
-                durationTextView.text = context.getString(R.string.minutes, minutes)
+                val hours = duration / (1000 * 60 * 60)
+                val minutes = (duration % (1000 * 60 * 60)) / (1000 * 60)
+                
+                durationTextView.text = if (hours > 0) {
+                    String.format("%2d小时%02d分钟", hours, minutes)
+                } else {
+                    String.format("%2d分钟", minutes)
+                }
             } catch (e: Exception) {
                 Log.e("EventAdapter", "Error calculating duration", e)
-                e.printStackTrace()
                 durationTextView.text = "时间格式错误"
             }
-
         }
     }
     override fun getEvents(newEvents: List<Event>): List<Event> {

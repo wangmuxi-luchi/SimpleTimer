@@ -1,10 +1,14 @@
 package com.wy.simple_timer.adapter
 
+import android.R.*
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.wy.simple_timer.R
 import com.wy.simple_timer.database.Category
 
 class CategoryAdapterCM : BaseCategoryAdapterRV() {
@@ -31,12 +35,15 @@ class CategoryAdapterCM : BaseCategoryAdapterRV() {
     }
 
     inner class ViewHolder(itemView: View) : BaseCategoryAdapterRV.ViewHolder(itemView) {
-        private val categoryText: TextView = itemView.findViewById(android.R.id.text1)
+        private val colorDot: ImageView = itemView.findViewById(R.id.color_dot)
+        private val categoryText: TextView = itemView.findViewById(R.id.category_name)
         override fun bind(position: Int, payloads: MutableList<Any>) {
             val category: Category = categories[position]
             // 调用回调函数
             onBindViewHolder(category, position)
             try {
+                val category = getItem(position)
+                colorDot.setColorFilter(Color.parseColor(category.categoryColor))
                 categoryText.text = category.categoryName
             } catch (e: IllegalArgumentException) {
                 e.printStackTrace()
@@ -55,34 +62,8 @@ class CategoryAdapterCM : BaseCategoryAdapterRV() {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_1, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_category_management, parent, false)
         return ViewHolder(view)
     }
 
 }
-
-//class CategoryAdapterCM(
-//    context: Context,
-//    AddLastItem : Boolean = false,
-//    AddLastItemText : String = "添加",
-//    AddLastItemColor : String = "#808080"
-//) : BaseCategoryAdapter(context, AddLastItem, AddLastItemText, AddLastItemColor){
-//
-//    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-//        var view = convertView
-//
-//        if (view == null) {
-//            view = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false)
-//            if(view == null) {
-//                throw RuntimeException("Failed to inflate layout")
-//            }
-//        }
-//        val textView = view.findViewById<TextView>(android.R.id.text1)
-//        val category = getItem(position)
-//        if (category != null) {
-//            textView.text = category.name
-//        }
-//        return view
-//    }
-//
-//}

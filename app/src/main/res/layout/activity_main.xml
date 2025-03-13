@@ -19,6 +19,20 @@
         android:orientation="horizontal">
 
         <Button
+            android:id="@+id/BackupDataButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/backupdatastring" />
+
+        <Button
+            android:id="@+id/RestoreDataButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/restoredata" />
+
+        <Button
             android:id="@+id/openCategoryManagementButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

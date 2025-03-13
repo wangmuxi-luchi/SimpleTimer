@@ -1,8 +1,15 @@
 package com.wy.simple_timer
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.DocumentsContract
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -15,10 +22,57 @@ import com.wy.simple_timer.fragment.EventListFragment // 假设你有这个 Frag
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
+
+// 在文件顶部新增导入
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.preferencesDataStore
+
+// 在类外部定义 DataStore
+private val Context.dataStore by preferencesDataStore(name = "settings")
+
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var eventviewmodel: EventViewModel
 
+
+    // 备份和恢复的 Launcher
+    private val backupLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                lifecycleScope.launch {
+                    saveLastDirectoryUri(uri)
+                    contentResolver.takePersistableUriPermission(uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+
+                    Intent(this@MainActivity, DatabaseManagementService::class.java).apply {
+                        action = "BACKUP_DATA"
+                        putExtra("outputUri", uri)
+                        startService(this)
+                    }
+                }
+            }
+        }
+    }
+
+    private val restoreLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                lifecycleScope.launch {
+                    saveLastDirectoryUri(uri)
+                    contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+                    Intent(this@MainActivity, DatabaseManagementService::class.java).apply {
+                        action = "RESTORE_DATA"
+                        putExtra("inputUri", uri)
+                        startService(this)
+                    }
+                }
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupBinding()
@@ -41,10 +95,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun setupButtonListeners() {
         binding.openRecordActivityButton.setOnClickListener { launchTimeRecordActivity() }
-        // 修改后的按钮监听
         binding.openCategoryManagementButton.setOnClickListener { launchCategoryManagementActivity() }
+        binding.BackupDataButton.setOnClickListener { backupData() }
+        binding.RestoreDataButton.setOnClickListener { restoreData() }
     }
 
     private fun launchTimeRecordActivity() {
@@ -70,4 +126,55 @@ class MainActivity : AppCompatActivity() {
         fragmentTransaction.replace(R.id.fragment_container, EventListFragment())
         fragmentTransaction.commit()
     }
+
+    // preferencesDataStore 操作，保存URL
+    private suspend fun saveLastDirectoryUri(uri: Uri) {
+        dataStore.edit { preferences ->
+            preferences[stringPreferencesKey("last_directory_uri")] = uri.toString()
+        }
+    }
+
+    private suspend fun getLastDirectoryUri(): Uri? {
+        return dataStore.data
+            .firstOrNull()
+            ?.get(stringPreferencesKey("last_directory_uri"))
+            ?.let { Uri.parse(it) }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun backupData() {
+        lifecycleScope.launch {
+            // 创建日期格式化器
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", java.util.Locale.getDefault())
+            val formattedTime = sdf.format(java.util.Date())
+            
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/json"
+                putExtra(Intent.EXTRA_TITLE, "backup_${formattedTime}.json") // 修改文件名格式
+                // 异步获取最后目录
+                getLastDirectoryUri()?.let {
+                    putExtra(DocumentsContract.EXTRA_INITIAL_URI, it)
+                }
+            }
+            backupLauncher.launch(intent)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun restoreData() {
+        lifecycleScope.launch {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/json"
+                // 异步获取最后目录
+                getLastDirectoryUri()?.let {
+                    putExtra(DocumentsContract.EXTRA_INITIAL_URI, it)
+                }
+            }
+            restoreLauncher.launch(intent)
+        }
+    }
+
+
 }

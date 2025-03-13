@@ -97,5 +97,7 @@ dependencies {
     // optional - Paging 3 Integration
     implementation(libs.androidx.room.paging)
 
-    implementation(libs.addresspicker)
+    implementation(libs.colorpicker)
+
+    implementation(libs.gson)
 }

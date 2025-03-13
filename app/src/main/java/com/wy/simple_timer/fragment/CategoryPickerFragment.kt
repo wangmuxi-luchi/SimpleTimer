@@ -83,7 +83,7 @@ class CategoryPickerFragment : Fragment() {
         Log.d("CategoryPickerFragment", "setCurrentCategory: $categoryId")
         val categoryDao = MyDatabase.getDatabase(requireContext()).categoryDao()
         lifecycleScope.launch {
-            categoryDao.getAllCategories().first()?.let { categories ->
+            categoryDao.getAllCategories().first().let { categories ->
                 Log.d("CategoryPickerFragment", "allcategories: $categories")
             }
             categoryViewModel.getCategories()?.first()?.let { categories ->
