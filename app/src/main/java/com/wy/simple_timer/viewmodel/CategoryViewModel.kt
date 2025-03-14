@@ -54,6 +54,13 @@ class CategoryViewModel(application: Application) : AndroidViewModel(application
         }
         getApplication<Application>().startService(intent)
     }
+    fun updateCategory(category: Category) {
+        val intent = Intent(getApplication(), DatabaseManagementService::class.java).apply {
+            action = "UPDATE_CATEGORY"
+            putExtra("object", category)
+        }
+        getApplication<Application>().startService(intent)
+    }
     fun deleteCategory(categoryId: Long) {
         // 替换前：
         // categoryDao.deleteCategory(categoryId)

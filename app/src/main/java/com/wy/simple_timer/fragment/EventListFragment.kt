@@ -2,6 +2,7 @@ package com.wy.simple_timer.fragment
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,14 +14,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.wy.simple_timer.EventEditActivity
 import com.wy.simple_timer.adapter.EventAdapterEL
+import com.wy.simple_timer.database.getEventsByDay
 import com.wy.simple_timer.databinding.FragmentEventListBinding
 import com.wy.simple_timer.viewmodel.EventViewModel
 import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Date
 
 class EventListFragment : Fragment() {
     private lateinit var binding: FragmentEventListBinding
     private lateinit var eventAdapterEL: EventAdapterEL
     private lateinit var eventViewModel: EventViewModel
+    private lateinit var onCreatedListener: () -> Unit
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,12 +41,20 @@ class EventListFragment : Fragment() {
         setupViewModel()
         setupRecyclerView()
         observeEvents()
-        handleWindowInsets()
+        onCreatedListener()
+    }
+
+    fun setOnCreatedListener(listener: () -> Unit) {
+        onCreatedListener = listener
+    }
+
+    fun setOnClickListener(listener:View. OnClickListener) {
+        binding.eventListView.setOnClickListener(listener)
     }
 
     private fun setupViewModel() {
         eventViewModel = ViewModelProvider(this)[EventViewModel::class.java]
-        eventViewModel.setEvents(eventViewModel.getEventDao().getAllEvents())
+        eventViewModel.setEvents(eventViewModel.getEventDao().getEventsByDay(Calendar.getInstance().time))
     }
 
     private fun setupRecyclerView() {
@@ -69,11 +82,4 @@ class EventListFragment : Fragment() {
         }
     }
 
-    private fun handleWindowInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-    }
 }

@@ -1,5 +1,6 @@
 package com.wy.simple_timer.adapter
 
+import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
@@ -40,7 +41,7 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
         return newCategories + Category(0, "编辑分类", "#808080", newCategories.size, false, -1)
     }
 
-    inner class ViewHolder(itemView: View) : BaseCategoryAdapterRV.ViewHolder(itemView){
+    inner class ViewHolder(context: Context, itemView: View) : BaseCategoryAdapterRV.ViewHolder(context, itemView){
         private val categoryText: TextView = itemView.findViewById(R.id.category_text)
         private val dot1: ImageView = itemView.findViewById(R.id.dot1)
         private val dot2: ImageView = itemView.findViewById(R.id.dot2)
@@ -103,7 +104,7 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_timerecord_category_list, parent, false)
-        return ViewHolder(view)
+        return ViewHolder(parent.context, view)
     }
 
     // 在 CategoryAdapterTR 类中新增方法

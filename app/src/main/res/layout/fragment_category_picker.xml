@@ -12,7 +12,7 @@
 
     <!-- 使用 RecyclerView 加载分类数据 -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/category_list"
+        android:id="@+id/category_list_recycle_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 

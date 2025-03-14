@@ -11,7 +11,7 @@ data class Category(
     val id: Long = 0,
     val categoryName: String,
     val categoryColor: String,
-    val position: Int,
+    var position: Int,
     val archived: Boolean,
     val parentId: Long = -1
 ) : Parcelable {

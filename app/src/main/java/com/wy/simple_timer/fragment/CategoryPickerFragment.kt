@@ -46,7 +46,7 @@ class CategoryPickerFragment : Fragment() {
 
         // 应用自定义的 ItemDecoration 并减小间隔值，这里假设减小到 4dp
         val spacingInPixels = resources.getDimensionPixelSize(R.dimen.small_spacing)
-        binding.categoryList.addItemDecoration(SpacingItemDecoration(spacingInPixels))
+        binding.categoryListRecycleView.addItemDecoration(SpacingItemDecoration(spacingInPixels))
 
         Log.d("CategoryPickerFragment", "onViewCreated")
         onFragmentReadyListener()
@@ -58,7 +58,7 @@ class CategoryPickerFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.categoryList.apply {
+        binding.categoryListRecycleView.apply {
             layoutManager = GridLayoutManager(requireContext(), 4)
             categoryAdapter = CategoryAdapterTR().also {
                 it.setOnLastItemClickListener {

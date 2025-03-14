@@ -40,9 +40,18 @@ class EventAdapterEL(private val context: AppCompatActivity) : BaseEventAdapterR
 
             // 通过类型 ID 查询活动类型
             val categoryDao = MyDatabase.getDatabase(context).categoryDao()
-            val category = categoryDao.getCategoryById(event.categoryId)
             context.lifecycleScope.launch {
-                category.firstOrNull()?.let { category ->
+                // 检查分类是否存在
+                val categoryFirst = categoryDao.getCategoryById(event.categoryId).firstOrNull()
+                // 如果分类存在，则设置活动类型
+                if (categoryFirst == null) {
+                    // 该分类已被删除，删除该类别下的所有事件
+                    Log.d("EventAdapter", "Category deleted, deleting events: ${event}, ${categoryFirst}")
+                    val eventDao = MyDatabase.getDatabase(context).eventDao()
+                    eventDao.deleteEventsByCategory(event.categoryId)
+                    // TODO: 好像没有成功删除
+                }
+                categoryFirst?.let { category ->
                     try {
                         val color = Color.parseColor(category.categoryColor)
                         colorDotImageView.setColorFilter(color)
@@ -52,12 +61,7 @@ class EventAdapterEL(private val context: AppCompatActivity) : BaseEventAdapterR
                     category.categoryName.let {
                         activityTextView.text = it
                     }
-                    cancel()
                 }
-                // 该分类已被删除，删除该类别下的所有事件
-                Log.d("EventAdapter", "Category deleted, deleting events")
-                val eventDao = MyDatabase.getDatabase(context).eventDao()
-                eventDao.deleteEventsByCategory(event.categoryId)
             }
             // 计算活动持续时间
             try {

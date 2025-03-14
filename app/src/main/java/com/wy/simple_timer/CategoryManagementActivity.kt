@@ -4,15 +4,12 @@ import CategoryDialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.*
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.github.gzuliyujiang.colorpicker.ColorPicker
 import com.wy.simple_timer.adapter.CategoryAdapterCM
 import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.viewmodel.CategoryViewModel
@@ -21,7 +18,7 @@ import kotlinx.coroutines.launch
 
 class CategoryManagementActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCategoryManagementBinding
-    private lateinit var viewmodel: CategoryViewModel
+    private lateinit var viewModel: CategoryViewModel
     private lateinit var categoryAdapter: CategoryAdapterCM
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,12 +44,12 @@ class CategoryManagementActivity : AppCompatActivity() {
     }
 
     private fun setupViewModel() {
-        viewmodel = ViewModelProvider(this)[CategoryViewModel::class.java]
-        viewmodel.setCategories(viewmodel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
+        viewModel = ViewModelProvider(this)[CategoryViewModel::class.java]
+        viewModel.setCategories(viewModel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
     }
 
     private fun setupRecyclerView() {
-        binding.categoryList.apply {
+        binding.categoryListRecycleView.apply {
             layoutManager = LinearLayoutManager(
                 this@CategoryManagementActivity,
                 LinearLayoutManager.VERTICAL, 
@@ -67,7 +64,7 @@ class CategoryManagementActivity : AppCompatActivity() {
 
     private fun observeCategories() {
         lifecycleScope.launch {
-            viewmodel.getCategories()?.collect { categories ->
+            viewModel.getCategories()?.collect { categories ->
                 categoryAdapter.setData(categories)
             }
         }
@@ -88,7 +85,7 @@ class CategoryManagementActivity : AppCompatActivity() {
             setOnBindViewHolder { category, position ->
                 if (position != category.position) {
                     Log.d("CategoryManagementActivity", "updateCategoryPosition: $category, $position")
-                    viewmodel.updateCategory(
+                    viewModel.updateCategory(
                         category.id,
                         category.categoryName,
                         category.categoryColor,
@@ -114,7 +111,7 @@ class CategoryManagementActivity : AppCompatActivity() {
                             false, 
                             -1
                         )
-                        viewmodel.insertCategory(newCategory)
+                        viewModel.insertCategory(newCategory)
                     }
                 }
 

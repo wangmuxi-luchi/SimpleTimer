@@ -1,0 +1,191 @@
+package com.wy.simple_timer.fragment
+
+import CategoryDialog
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.wy.simple_timer.CategoryDetailActivity
+import com.wy.simple_timer.DatabaseManagementService
+import com.wy.simple_timer.TimeRecordActivity
+import com.wy.simple_timer.adapter.CategoryAdapterCM
+import com.wy.simple_timer.database.Category
+import com.wy.simple_timer.database.Event
+import com.wy.simple_timer.database.MyDatabase
+import com.wy.simple_timer.databinding.FragmentCategoryManagementBinding
+import com.wy.simple_timer.utils.ItemTouchCallbackCM
+import com.wy.simple_timer.viewmodel.CategoryViewModel
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+
+
+class CategoryManagementFragment : Fragment() {
+    private lateinit var binding: FragmentCategoryManagementBinding
+    private lateinit var viewModel: CategoryViewModel
+    private lateinit var categoryAdapter: CategoryAdapterCM
+    private lateinit var onCreatedListener: () -> Unit
+    private lateinit var onBlankClickListener: () -> Unit
+    fun setOnBlankClickListener(listener: () -> Unit) {
+        onBlankClickListener = listener
+    }
+    fun setOnCreatedListener(listener: () -> Unit) {
+        onCreatedListener = listener
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentCategoryManagementBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupViewModel()
+        setupRecyclerView()
+        setupAdapterCallbacks()
+        onCreatedListener()
+    }
+
+
+    fun setOnClickListener(listener: View.OnClickListener) {
+        binding.categoryListRecycleView.setOnClickListener(listener)
+    }
+
+    private fun setupViewModel() {
+        viewModel = ViewModelProvider(this)[CategoryViewModel::class.java]
+        viewModel.setCategories(viewModel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
+    }
+
+    private fun setupRecyclerView() {
+        binding.categoryListRecycleView.apply {
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+            adapter = CategoryAdapterCM().also {categoryAdapter = it}
+
+            val itemTouchHelper = ItemTouchHelper(ItemTouchCallbackCM(categoryAdapter))
+            itemTouchHelper.attachToRecyclerView(this)
+        }
+        observeCategories()
+    }
+
+    private fun observeCategories() {
+        var shouldTriggerCollect = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (shouldTriggerCollect) {
+                viewModel.getCategories()?.conflate()?.collect { categories ->
+                    categoryAdapter.setData(categories)
+                    Log.d("CategoryManagementFragment", "categories collect: $categories")
+                }
+            }else{
+                // 不触发collect
+                Log.d("CategoryManagementFragment", "categories collect: not trigger")
+            }
+        }
+        Log.d("CategoryManagementFragment", "setOnItemMovedListener")
+        categoryAdapter.setOnItemMovedListener { fromPosition, toPosition ->
+            shouldTriggerCollect = false
+            for (i in maxOf(fromPosition, toPosition) downTo minOf(fromPosition, toPosition)) {
+                val category = categoryAdapter.getCategory(i)
+                Log.d("CategoryManagementFragment", "category position update:" +
+                        "categoryname: ${category.categoryName}; oldposition: ${category.position} position:${i}")
+                category.position = i
+                viewModel.updateCategory(category)
+            }
+            shouldTriggerCollect = true
+        }
+    }
+
+    private fun setupAdapterCallbacks() {
+        categoryAdapter.apply {
+            setOnOtherItemClickListener { categoryID ->
+                startActivity(Intent(requireContext(), CategoryDetailActivity::class.java).apply {
+                    putExtra("categoryID", categoryID)
+                })
+            }
+            
+            setOnLastItemClickListener { showAddCategoryDialog() }
+
+            setOnSwipedListener { category ->
+                saveRecord(category.id)
+            }
+            
+            setOnBindViewHolder { category, position ->
+                // 在这里更新 position
+                if (position != category.position) {
+                    category.position = position
+                    viewModel.updateCategory(category)
+                }
+            }
+        }
+    }
+    var selectedColor = "#808080" // 默认颜色
+    private fun showAddCategoryDialog() {
+        val categoryDialog = CategoryDialog(requireActivity()).apply {
+            setListener(object : CategoryDialog.CategoryDialogListener {
+                override fun onConfirmEdit(newName: String, newColor: String) {
+                    if (newName.isNotEmpty()) {
+                        val newCategory = Category(
+                            0, 
+                            newName, 
+                            newColor, 
+                            categoryAdapter.itemCount - 1, 
+                            false, 
+                            -1
+                        )
+                        viewModel.insertCategory(newCategory)
+                    }
+                }
+
+                override fun onPickColor(newColor: String) {
+                    selectedColor = newColor
+                }
+            })
+        }
+        // 初始名为空字符串，默认颜色使用当前选中颜色
+        categoryDialog.show("", selectedColor)
+    }
+
+    private fun saveRecord(cateegoryID: Long) {
+        lifecycleScope.launch {
+            val eventDao = MyDatabase.getDatabase(requireContext()).eventDao()
+            val allEvents = eventDao.getAllEvents().firstOrNull()
+            val latestEvent = allEvents?.maxByOrNull { it.endTime.time }
+
+            // 当前时间转换为Date
+            val currentDate = java.util.Date(System.currentTimeMillis())
+
+            val startTime = latestEvent?.endTime ?: currentDate
+            val endTime = currentDate
+
+            if (startTime.after(endTime)) {
+                Toast.makeText(requireContext(), "开始时间不能晚于结束时间", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            if (cateegoryID == null) {
+                Toast.makeText(requireContext(), "未找到对应的分类", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val remark = ""
+
+            // 保存记录到数据库
+            val event = Event(0, startTime, endTime, cateegoryID, remark)
+            val intent = Intent(requireContext(), DatabaseManagementService::class.java).apply {
+                action = "INSERT_EVENT"
+                putExtra("object", event)
+            }
+            requireActivity().startService(intent)
+        }
+    }
+}

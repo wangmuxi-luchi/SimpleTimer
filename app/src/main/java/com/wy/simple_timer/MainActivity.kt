@@ -3,6 +3,7 @@ package com.wy.simple_timer
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import com.wy.simple_timer.fragment.CategoryManagementFragment
 
 // 在类外部定义 DataStore
 private val Context.dataStore by preferencesDataStore(name = "settings")
@@ -34,6 +36,9 @@ private val Context.dataStore by preferencesDataStore(name = "settings")
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var eventviewmodel: EventViewModel
+    private var selectedFragment = 2 // 1 表示事件列表，2 表示分类管理
+    private lateinit var eventListFragment: EventListFragment
+    private lateinit var categoryManagementFragment: CategoryManagementFragment
 
 
     // 备份和恢复的 Launcher
@@ -77,8 +82,27 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setupBinding()
         handleWindowInsets()
-        setupButtonListeners()
-        loadEventListFragment() // 加载 EventListFragment
+        loadEventListFragment() // 加载事件列表
+        loadCategoryManagementFragment() // 加载分类管理
+        setupClickListeners()
+    }
+
+    // 加载分类管理Fragment到第二个容器
+    private fun loadCategoryManagementFragment() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container2, CategoryManagementFragment().also {
+               categoryManagementFragment = it
+            })
+            .commit()
+    }
+
+    private fun loadEventListFragment() {
+        val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.fragment_container1, EventListFragment().also {
+            eventListFragment = it
+        })
+
+        fragmentTransaction.commit()
     }
 
     private fun setupBinding() {
@@ -96,11 +120,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun setupButtonListeners() {
+    private fun setupClickListeners() {
         binding.openRecordActivityButton.setOnClickListener { launchTimeRecordActivity() }
         binding.openCategoryManagementButton.setOnClickListener { launchCategoryManagementActivity() }
         binding.BackupDataButton.setOnClickListener { backupData() }
         binding.RestoreDataButton.setOnClickListener { restoreData() }
+
+        eventListFragment.setOnCreatedListener {
+            eventListFragment.setOnClickListener {
+                changeSelectedFragment(1)
+            }
+        }
+        categoryManagementFragment.setOnCreatedListener {
+            categoryManagementFragment.setOnClickListener {
+                changeSelectedFragment(2)
+            }
+        }
     }
 
     private fun launchTimeRecordActivity() {
@@ -119,12 +154,6 @@ class MainActivity : AppCompatActivity() {
     // 新增分类管理跳转方法
     private fun launchCategoryManagementActivity() {
         startActivity(Intent(this, CategoryManagementActivity::class.java))
-    }
-
-    private fun loadEventListFragment() {
-        val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.fragment_container, EventListFragment())
-        fragmentTransaction.commit()
     }
 
     // preferencesDataStore 操作，保存URL
@@ -176,5 +205,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun updateShadowDivider(){
+        val gradientDrawable = binding.fragmentContainers.dividerDrawable as GradientDrawable
+        if (selectedFragment == 1) {
+            gradientDrawable.orientation = GradientDrawable.Orientation.LEFT_RIGHT
+        }else{
+            gradientDrawable.orientation = GradientDrawable.Orientation.RIGHT_LEFT
+        }
+        binding.fragmentContainers.invalidate()
 
+    }
+    private fun changeSelectedFragment(index: Int) {
+        selectedFragment = index
+        updateShadowDivider()
+        saveSelectedFragment()
+    }
+    // 保存选中状态到DataStore
+    private fun saveSelectedFragment() {
+        lifecycleScope.launch {
+            dataStore.edit { preferences ->
+                preferences[stringPreferencesKey("selected_fragment")] = selectedFragment.toString()
+            }
+        }
+    }
 }

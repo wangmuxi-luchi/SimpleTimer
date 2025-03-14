@@ -1,6 +1,7 @@
 package com.wy.simple_timer.adapter
 
 import android.R.*
+import android.content.Context
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
@@ -34,20 +35,21 @@ class CategoryAdapterCM : BaseCategoryAdapterRV() {
         return newCategories + Category(0, "添加分类", "#808080", newCategories.size, false, -1)
     }
 
-    inner class ViewHolder(itemView: View) : BaseCategoryAdapterRV.ViewHolder(itemView) {
+    inner class ViewHolder(context: Context, itemView: View) : BaseCategoryAdapterRV.ViewHolder(context, itemView) {
         private val colorDot: ImageView = itemView.findViewById(R.id.color_dot)
         private val categoryText: TextView = itemView.findViewById(R.id.category_name)
         override fun bind(position: Int, payloads: MutableList<Any>) {
             val category: Category = categories[position]
             // 调用回调函数
             onBindViewHolder(category, position)
+
             try {
-                val category = getItem(position)
                 colorDot.setColorFilter(Color.parseColor(category.categoryColor))
                 categoryText.text = category.categoryName
             } catch (e: IllegalArgumentException) {
                 e.printStackTrace()
             }
+
             itemView.setOnClickListener {
                 if (absoluteAdapterPosition == categories.size - 1) {
                     // 最后一个元素被点击，执行回调函数
@@ -63,7 +65,7 @@ class CategoryAdapterCM : BaseCategoryAdapterRV() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_category_management, parent, false)
-        return ViewHolder(view)
+        return ViewHolder(parent.context, view)
     }
 
 }
