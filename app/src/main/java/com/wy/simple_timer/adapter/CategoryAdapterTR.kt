@@ -13,14 +13,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.wy.simple_timer.R
 import com.wy.simple_timer.database.Category
 
-
 class CategoryAdapterTR : BaseCategoryAdapterRV() {
-    private var onLastItemClickListener: () -> Unit = {}
+//    private var onLastItemClickListener: () -> Unit = {}
     
     // 新增：设置最后一个元素的回调函数
-    fun setOnLastItemClickListener(listener: () -> Unit) {
-        onLastItemClickListener = listener
-    }
+//    fun setOnLastItemClickListener(listener: () -> Unit) {
+//        onLastItemClickListener = listener
+//    }
     // 新增：记录当前选中的位置
     private var currentPosition = 0
     // 获取当前选中的位置
@@ -28,17 +27,17 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
         return currentPosition
     }
     // 获取当前选中的分类
-    fun getCurrentCategory(): Long? {
-        return if (currentPosition != -1 && currentPosition < categories.size) {
+    fun getCurrentCategory(): Long {
+        return if (currentPosition < categories.size) {
             categories[currentPosition].id
         } else {
-            null
+            -1
         }
     }
     
     override fun getCategories(newCategories: List<Category>): List<Category> {
         // 在最后添加一个 "编辑分类"
-        return newCategories + Category(0, "编辑分类", "#808080", newCategories.size, false, -1)
+        return newCategories //+ _Category(Category(0, "编辑分类", "#808080", newCategories.size, false, -1))
     }
 
     inner class ViewHolder(context: Context, itemView: View) : BaseCategoryAdapterRV.ViewHolder(context, itemView){
@@ -92,9 +91,10 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
             dot1.visibility = if (isSelected) View.VISIBLE else View.GONE
             dot2.visibility = if (isSelected) View.VISIBLE else View.GONE
             itemView.setOnClickListener {
-                if (absoluteAdapterPosition == categories.size - 1)
-                    onLastItemClickListener()
-                else if( absoluteAdapterPosition!= RecyclerView.NO_POSITION
+//                if (absoluteAdapterPosition == categories.size - 1)
+//                    onLastItemClickListener()
+//                else
+                if( absoluteAdapterPosition!= RecyclerView.NO_POSITION
                     &&   absoluteAdapterPosition!= currentPosition ) {
                     setCurrentPosition(absoluteAdapterPosition)
                 }
@@ -107,13 +107,16 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
         return ViewHolder(parent.context, view)
     }
 
-    // 在 CategoryAdapterTR 类中新增方法
     fun setCurrentPosition(position: Int) {
         val oldPosition = currentPosition
         currentPosition = if (position in 0 until categories.size) position else 0
         notifyItemChanged(oldPosition, mutableListOf("UPDATE_SELECTION"))
         notifyItemChanged(currentPosition, mutableListOf("UPDATE_SELECTION"))
         Log.d("CategoryAdapter", "set current position to $currentPosition")
+    }
+    fun setCurrentPosition(categoryId: Long) {
+        val position = categories.indexOfFirst { it.id == categoryId }
+        if (position != -1) setCurrentPosition(position)
     }
     
     // 新增辅助方法

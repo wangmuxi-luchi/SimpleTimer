@@ -26,44 +26,49 @@
                 android:orientation="horizontal"
                 android:padding="0dp">
 
-                <Button
+                <ImageButton
                     android:id="@+id/back_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/BackString"
-                    android:layout_gravity="start"
-                    android:background="?attr/selectableItemBackground" />
+                    android:layout_width="60dp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_arrow_left"
+                    android:background="@color/transparent"
+                    android:layout_gravity="center"/>
 
-                <Button
-                    android:id="@+id/add_button"
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/EditString"
-                    android:textColor="@color/blue_42eeff"
-                    android:clickable="false"
-                    android:background="?attr/selectableItemBackground" />
-                
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center_vertical"
+                    />
+
                 <View
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
-                <Button
-                    android:id="@+id/today_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/TodayString"
-                    android:background="?attr/selectableItemBackground"
-                    android:layout_gravity="end"
-                    />
+
+<!--                <Button-->
+<!--                    style="?android:borderlessButtonStyle"-->
+<!--                    android:id="@+id/today_button"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="@string/TodayString"-->
+<!--                    android:padding="0dp"-->
+<!--                    android:background="@color/transparent"-->
+<!--                    android:layout_gravity="end"-->
+<!--                    />-->
 
                 <Button
+                    style="?android:borderlessButtonStyle"
                     android:id="@+id/save_button_top"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/SaveString"
-                    android:background="?attr/selectableItemBackground"
+                    android:padding="0dp"
+                    android:background="@color/transparent"
                     android:layout_gravity="end"/>
-
             </LinearLayout>
         </androidx.appcompat.widget.Toolbar>
 

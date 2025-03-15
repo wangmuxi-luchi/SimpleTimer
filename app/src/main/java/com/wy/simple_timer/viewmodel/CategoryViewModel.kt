@@ -6,25 +6,28 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.wy.simple_timer.DatabaseManagementService
 import com.wy.simple_timer.database.Category
+import com.wy.simple_timer.database.CategoryDao
 import com.wy.simple_timer.database.MyDatabase
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
-class CategoryViewModel(application: Application) : AndroidViewModel(application) {
-    private var categories : Flow<List<Category>>? = null
-    private val categoryDao = MyDatabase.getDatabase(application).categoryDao()
+open class CategoryViewModel(application: Application) : AndroidViewModel(application) {
+    protected var categories : Flow<List<Category>> = emptyFlow()
+    protected val categoryDao = MyDatabase.getDatabase(application).categoryDao()
 
-    fun setCategories(categories: Flow<List<Category>>){
-        this.categories = categories
+//    init {
+//        categories = categoryDao.getUnarchivedRootCategoriesOrderedByPosition()
+//    }
+
+    fun refreshCategories(func:(CategoryDao) -> Flow<List<Category>> ): Flow<List<Category>>{
+        categories = func(categoryDao)
+        return categories
     }
-    fun getCategories() = categories
-    fun getCategoryDao() = categoryDao
-//    abstract val categories : Flow<List<Category>>// 返回 Flow<List<User>>
+
+//    fun getCategories() = categories
+
     fun insertCategory(category: Category) {
-        // 替换前：
-        // categoryDao.insertCategory(category)
-        
-        // 替换后：
         val intent = Intent(getApplication(), DatabaseManagementService::class.java).apply {
             action = "INSERT_CATEGORY"
             putExtra("object", category)
@@ -62,10 +65,6 @@ class CategoryViewModel(application: Application) : AndroidViewModel(application
         getApplication<Application>().startService(intent)
     }
     fun deleteCategory(categoryId: Long) {
-        // 替换前：
-        // categoryDao.deleteCategory(categoryId)
-        
-        // 替换后：
         val intent = Intent(getApplication(), DatabaseManagementService::class.java).apply {
             action = "DELETE_CATEGORY"
             putExtra("categoryId", categoryId)
@@ -75,33 +74,8 @@ class CategoryViewModel(application: Application) : AndroidViewModel(application
     fun getCategoriesByParentId(parentId: Long) = viewModelScope.launch {
         categoryDao.getCategoriesByParentId(parentId)
     }
-//    getCategoryById
     fun getCategoryById(categoryId: Long) = viewModelScope.launch {
         categoryDao.getCategoriesById(categoryId)
     }
-//    fun getCategoriesByParentIdOrderedByPosition(parentId: Long) = viewModelScope.launch {
-//        categoryDao.getCategoriesByParentIdOrderedByPosition(parentId)
-//    }
-//    fun getUnarchivedRootCategoriesOrderedByPosition() = viewModelScope.launch {
-//        categoryDao.getUnarchivedRootCategoriesOrderedByPosition()
-//    }
-//    fun getArchivedRootCategoriesOrderedByPosition() = viewModelScope.launch {
-//        categoryDao.getArchivedRootCategoriesOrderedByPosition()
-//    }
 
 }
-
-// 自定义的 ViewModel 工厂类
-//class CategoryViewModelFactory(
-//    private val application: Application,
-//    private val type: Int = CategoryViewModel.allCategory,
-//    private val id: Long = 0L
-//): ViewModelProvider.Factory {
-//    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-//        if (modelClass.isAssignableFrom(CategoryViewModel::class.java)) {
-//            return CategoryViewModel(application, type, id) as T
-//        }
-//        throw IllegalArgumentException("Unknown ViewModel class")
-//    }
-//
-//}

@@ -4,14 +4,17 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentTransaction
@@ -76,7 +79,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +88,7 @@ class MainActivity : AppCompatActivity() {
         loadCategoryManagementFragment() // 加载分类管理
         setupClickListeners()
         setupTimeRange()
+
     }
 
     private fun setupTimeRange() {
@@ -131,7 +134,7 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setupClickListeners() {
         binding.openRecordActivityButton.setOnClickListener { launchTimeRecordActivity() }
-        binding.openCategoryManagementButton.setOnClickListener { launchCategoryManagementActivity() }
+//        binding.openCategoryManagementButton.setOnClickListener { launchCategoryManagementActivity() }
         binding.BackupDataButton.setOnClickListener { backupData() }
         binding.RestoreDataButton.setOnClickListener { restoreData() }
 
@@ -161,9 +164,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 新增分类管理跳转方法
-    private fun launchCategoryManagementActivity() {
-        startActivity(Intent(this, CategoryManagementActivity::class.java))
-    }
+//    private fun launchCategoryManagementActivity() {
+//        startActivity(Intent(this, CategoryManagementActivity::class.java))
+//    }
 
     // preferencesDataStore 操作，保存URL
     private suspend fun saveLastDirectoryUri(uri: Uri) {

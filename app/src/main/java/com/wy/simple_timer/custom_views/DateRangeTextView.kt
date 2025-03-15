@@ -100,7 +100,7 @@ class DateRangeTextView(context: Context, attrs: AttributeSet?, defStyleAttr: In
             refreshText()
         }, startCalendar.get(Calendar.YEAR),
             startCalendar.get(Calendar.MONTH),
-            startCalendar.get(Calendar.DAY_OF_MONTH)).show()
+            startCalendar.get(Calendar.DAY_OF_MONTH)).apply { setPromptText("你可以选择起始日期\n也可以选择时间范围") }.show()
     }
     private fun pickEndDate() {
         CustomDatePickerDialog(getContext(), { year, month, day, range ->
@@ -109,6 +109,6 @@ class DateRangeTextView(context: Context, attrs: AttributeSet?, defStyleAttr: In
             refreshText()
         }, endCalendar.get(Calendar.YEAR),
             endCalendar.get(Calendar.MONTH),
-            endCalendar.get(Calendar.DAY_OF_MONTH)).show()
+            endCalendar.get(Calendar.DAY_OF_MONTH)).apply { setPromptText("你可以选择结束日期\n也可以选择时间范围") }.show()
     }
 }

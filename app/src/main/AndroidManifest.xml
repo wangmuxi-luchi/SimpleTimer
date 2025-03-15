@@ -16,11 +16,11 @@
         <activity
             android:name=".EventEditActivity"
             android:exported="false" />
-        <activity
-            android:name=".EventListActivity"
-            android:exported="false"
-            android:label="@string/title_activity_event_list"
-            android:theme="@style/Theme.Simple_timer" />
+<!--        <activity-->
+<!--            android:name=".EventListActivity"-->
+<!--            android:exported="false"-->
+<!--            android:label="@string/title_activity_event_list"-->
+<!--            android:theme="@style/Theme.Simple_timer" />-->
         <activity
             android:name=".TimeRecordActivity"
             android:exported="false" />
@@ -33,9 +33,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".CategoryManagementActivity"
-            android:exported="false" />
+<!--        <activity-->
+<!--            android:name=".CategoryManagementActivity"-->
+<!--            android:exported="false" />-->
         <activity
             android:name=".CategoryDetailActivity"
             android:exported="false" /> <!-- 移除前台服务类型声明 -->

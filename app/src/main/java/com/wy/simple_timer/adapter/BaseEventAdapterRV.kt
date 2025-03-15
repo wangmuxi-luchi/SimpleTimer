@@ -1,5 +1,7 @@
 package com.wy.simple_timer.adapter
 
+import android.annotation.SuppressLint
+import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -18,7 +20,7 @@ class EventDiffUtilCallback : DiffUtil.ItemCallback<Event>() {
 }
 
 abstract class BaseEventAdapterRV : ListAdapter<Event, BaseEventAdapterRV.ViewHolder>(EventDiffUtilCallback()) {
-    private var events = emptyList<Event>()
+    protected var events = emptyList<Event>()
 
     abstract class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         abstract fun bind(event: Event, payloads: MutableList<Any> = mutableListOf(""))
@@ -45,16 +47,16 @@ abstract class BaseEventAdapterRV : ListAdapter<Event, BaseEventAdapterRV.ViewHo
 //    }
 
     // 设置数据
-    fun setData(newEvents: List<Event>) {
+    open fun setData(newEvents: List<Event>) {
         events = getEvents(newEvents)
         submitList(events)
     }
 
     // 更新数据
-    fun updateData(newEvents: List<Event>) {
-        events = getEvents(newEvents)
-        submitList(events)
-    }
+//    fun updateData(newEvents: List<Event>) {
+//        events = getEvents(newEvents)
+//        submitList(events)
+//    }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(events[position])

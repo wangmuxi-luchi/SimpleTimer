@@ -92,9 +92,10 @@ class CategoryDetailActivity : AppCompatActivity() {
     private fun updateData(){
         // 读取当前 Category 对应的所有 Event
         val viewmodel = ViewModelProvider(this)[EventViewModel::class.java]
-        viewmodel.setEvents(viewmodel.getEventDao().getEventsByCategory(categoryID))
+        viewmodel.refreshEvents { it.getEventsByCategory(categoryID)}
         lifecycleScope.launch {
-            viewmodel.getEvents()?.collect { events ->
+            viewmodel.refreshEvents {
+                it.getEventsByCategory(categoryID)}.collect { events ->
                 // 遍历 Event，计算总时间，总天数，平均每天时间
                 val totalTimes = events.size
                 var totalMinutes = 0L

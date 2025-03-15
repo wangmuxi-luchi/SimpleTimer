@@ -158,7 +158,7 @@ class EventEditActivity : AppCompatActivity() {
 
         val selectedCategoryId = categoryPickerFragment.getCurrentCategory()
 
-        if (selectedCategoryId == null) {
+        if (selectedCategoryId == -1L) {
             Toast.makeText(this, "未找到对应的分类", Toast.LENGTH_SHORT).show()
             return
         }

@@ -54,53 +54,43 @@ class CategoryPickerFragment : Fragment() {
 
     private fun setupViewModel() {
         categoryViewModel = ViewModelProvider(this)[CategoryViewModel::class.java]
-        categoryViewModel.setCategories(categoryViewModel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
     }
 
     private fun setupRecyclerView() {
         binding.categoryListRecycleView.apply {
             layoutManager = GridLayoutManager(requireContext(), 4)
-            categoryAdapter = CategoryAdapterTR().also {
-                it.setOnLastItemClickListener {
-                    requireActivity().startActivity(
-                        android.content.Intent(
-                            requireContext(),
-                            com.wy.simple_timer.CategoryManagementActivity::class.java
-                        )
-                    )
-                }
-            }
+            categoryAdapter = CategoryAdapterTR()
+//                .also
+//            {
+//                it.setOnLastItemClickListener {
+//                    requireActivity().startActivity(
+//                        android.content.Intent(
+//                            requireContext(),
+//                            com.wy.simple_timer.CategoryManagementActivity::class.java
+//                        )
+//                    )
+//                }
+//            }
             adapter = categoryAdapter
         }
     }
 
     private fun observeCategories() {
         viewLifecycleOwner.lifecycleScope.launch {
-            categoryViewModel.getCategories()?.collect { categories ->
+            categoryViewModel.refreshCategories {
+                it.getUnarchivedRootCategoriesOrderedByPosition()
+            }.collect { categories ->
                 categoryAdapter.setData(categories)
             }
         }
     }
 
-    fun getCurrentCategory(): Long? {
+    fun getCurrentCategory(): Long {
         return categoryAdapter.getCurrentCategory()
     }
 
     // 在 设置当前选中的分类
     fun setCurrentCategory(categoryId: Long) {
-        Log.d("CategoryPickerFragment", "setCurrentCategory: $categoryId")
-        val categoryDao = MyDatabase.getDatabase(requireContext()).categoryDao()
-        lifecycleScope.launch {
-            categoryDao.getAllCategories().first().let { categories ->
-                Log.d("CategoryPickerFragment", "allcategories: $categories")
-            }
-            categoryViewModel.getCategories()?.first()?.let { categories ->
-                val position = categories.indexOfFirst { it.id == categoryId }
-                Log.d("CategoryPickerFragment", "setCurrentCategory: $categories，position: $position")
-                if (position != -1) {
-                    categoryAdapter.setCurrentPosition(position)
-                }
-            }
-        }
+        categoryAdapter.setCurrentPosition(categoryId)
     }
 }

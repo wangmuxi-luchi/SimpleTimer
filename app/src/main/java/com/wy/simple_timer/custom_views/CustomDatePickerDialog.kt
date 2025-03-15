@@ -24,6 +24,11 @@ class CustomDatePickerDialog(
         setupButtonsClickListeners()
     }
 
+    // 设置提示文本
+    fun setPromptText(text: String){
+        binding.setDateText.text = text
+    }
+
     private fun setupButtonsClickListeners(){
         binding.cancelButton.setOnClickListener {
             dismiss()

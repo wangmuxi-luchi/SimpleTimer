@@ -7,35 +7,6 @@
         android:id="@+id/date_picker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <TextView
-            android:id="@+id/set_date_text"
-            android:text="@string/set_range_String"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:textColor="#625b71"
-            android:background="@android:color/transparent"
-            android:layout_gravity="center_vertical"
-            android:gravity="center_horizontal"/>
-        <Button
-            android:id="@+id/cancel_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#6750a4"
-            android:background="@android:color/transparent"
-            android:text="@string/cancel"/>
-        <Button
-            android:id="@+id/ok_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#6750a4"
-            android:background="@android:color/transparent"
-            android:text="@string/ok"/>
-    </LinearLayout>
 
     <LinearLayout
         android:orientation="horizontal"
@@ -47,7 +18,8 @@
             android:layout_height="wrap_content"
             android:text="@string/year"
             android:textColor="#6750a4"
-            android:background="@android:color/transparent"
+            android:background="@color/transparent"
+            android:padding="0dp"
             android:layout_weight="1"/>
         <Button
             android:id="@+id/month_button"
@@ -55,7 +27,8 @@
             android:layout_height="wrap_content"
             android:text="@string/month"
             android:textColor="#6750a4"
-            android:background="@android:color/transparent"
+            android:background="@color/transparent"
+            android:padding="0dp"
             android:layout_weight="1"/>
         <Button
             android:id="@+id/week_button"
@@ -63,7 +36,8 @@
             android:layout_height="wrap_content"
             android:text="@string/week"
             android:textColor="#6750a4"
-            android:background="@android:color/transparent"
+            android:background="@color/transparent"
+            android:padding="0dp"
             android:layout_weight="1"/>
 
         <Button
@@ -72,7 +46,8 @@
             android:layout_height="wrap_content"
             android:text="@string/day"
             android:textColor="#6750a4"
-            android:background="@android:color/transparent"
+            android:background="@color/transparent"
+            android:padding="0dp"
             android:layout_weight="1"/>
 
         <Button
@@ -81,8 +56,41 @@
             android:layout_height="wrap_content"
             android:text="@string/TodayString"
             android:textColor="#6750a4"
-            android:background="@android:color/transparent"
+            android:background="@color/transparent"
+            android:padding="0dp"
             android:layout_weight="1"/>
+    </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/set_date_text"
+            android:text="@string/set_range_String"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:textSize="15sp"
+            android:layout_height="wrap_content"
+            android:textColor="#625b71"
+            android:background="@color/transparent"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_horizontal"/>
+        <Button
+            android:id="@+id/cancel_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#6750a4"
+            android:background="@color/transparent"
+            android:padding="0dp"
+            android:text="@string/cancel"/>
+        <Button
+            android:id="@+id/ok_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#6750a4"
+            android:background="@color/transparent"
+            android:gravity="center"
+            android:text="@string/ok"/>
     </LinearLayout>
 </LinearLayout>

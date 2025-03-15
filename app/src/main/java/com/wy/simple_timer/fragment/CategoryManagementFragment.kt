@@ -66,7 +66,8 @@ class CategoryManagementFragment : Fragment() {
 
     private fun setupViewModel() {
         viewModel = ViewModelProvider(this)[CategoryViewModel::class.java]
-        viewModel.setCategories(viewModel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
+//        viewModel.setCategories(viewModel.getCategoryDao().getUnarchivedRootCategoriesOrderedByPosition())
+//        viewModel.setEvents(viewModel.getEventDao().getAllEvents())
     }
 
     private fun setupRecyclerView() {
@@ -84,7 +85,8 @@ class CategoryManagementFragment : Fragment() {
         var shouldTriggerCollect = true
         viewLifecycleOwner.lifecycleScope.launch {
             if (shouldTriggerCollect) {
-                viewModel.getCategories()?.conflate()?.collect { categories ->
+                viewModel.refreshCategories { it.getUnarchivedRootCategoriesOrderedByPosition() }
+                    .conflate().collect { categories ->
                     categoryAdapter.setData(categories)
                     Log.d("CategoryManagementFragment", "categories collect: $categories")
                 }

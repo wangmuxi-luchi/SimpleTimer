@@ -10,8 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.AdapterDataObserver
 import com.wy.simple_timer.DatabaseManagementService
 import com.wy.simple_timer.database.Category
-import java.util.Collections
 
+import java.util.Collections
 
 class CategoryDiffUtilCallback : DiffUtil.ItemCallback<Category>() {
 
