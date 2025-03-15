@@ -85,6 +85,15 @@ class MainActivity : AppCompatActivity() {
         loadEventListFragment() // 加载事件列表
         loadCategoryManagementFragment() // 加载分类管理
         setupClickListeners()
+        setupTimeRange()
+    }
+
+    private fun setupTimeRange() {
+        binding.dateRangeTextView.setOnTimeTextChangedListener { start, end ->
+            // 在这里处理时间范围的变化
+            // 例如，更新事件列表
+            eventListFragment.setTimeRange(start, end)
+        }
     }
 
     // 加载分类管理Fragment到第二个容器
@@ -218,14 +227,5 @@ class MainActivity : AppCompatActivity() {
     private fun changeSelectedFragment(index: Int) {
         selectedFragment = index
         updateShadowDivider()
-        saveSelectedFragment()
-    }
-    // 保存选中状态到DataStore
-    private fun saveSelectedFragment() {
-        lifecycleScope.launch {
-            dataStore.edit { preferences ->
-                preferences[stringPreferencesKey("selected_fragment")] = selectedFragment.toString()
-            }
-        }
     }
 }

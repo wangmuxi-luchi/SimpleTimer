@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.wy.simple_timer.CategoryDetailActivity
 import com.wy.simple_timer.DatabaseManagementService
-import com.wy.simple_timer.TimeRecordActivity
 import com.wy.simple_timer.adapter.CategoryAdapterCM
 import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.Event
@@ -26,6 +25,8 @@ import com.wy.simple_timer.viewmodel.CategoryViewModel
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Date
 
 
 class CategoryManagementFragment : Fragment() {
@@ -163,20 +164,26 @@ class CategoryManagementFragment : Fragment() {
             val latestEvent = allEvents?.maxByOrNull { it.endTime.time }
 
             // 当前时间转换为Date
-            val currentDate = java.util.Date(System.currentTimeMillis())
+            val currentTime = System.currentTimeMillis()
+            val currentDate = Date(currentTime)
 
-            val startTime = latestEvent?.endTime ?: currentDate
+            var _startTime = (latestEvent?.endTime ?: currentDate).time
+            // 获取当前时间
+            val calendar = Calendar.getInstance()
+            calendar.timeInMillis = currentTime
+            // 如果startTime为-1，或者距离当前时间相差24小时以上，设置为当天的0点
+            if (_startTime == -1L||_startTime+24*60*60*1000<currentTime) {
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                _startTime = calendar.timeInMillis
+            }else if(_startTime>currentTime){
+                _startTime = currentTime
+            }
+            // 设置开始时间
             val endTime = currentDate
+            val startTime = Date(_startTime)
 
-            if (startTime.after(endTime)) {
-                Toast.makeText(requireContext(), "开始时间不能晚于结束时间", Toast.LENGTH_SHORT).show()
-                return@launch
-            }
-
-            if (cateegoryID == null) {
-                Toast.makeText(requireContext(), "未找到对应的分类", Toast.LENGTH_SHORT).show()
-                return@launch
-            }
             val remark = ""
 
             // 保存记录到数据库

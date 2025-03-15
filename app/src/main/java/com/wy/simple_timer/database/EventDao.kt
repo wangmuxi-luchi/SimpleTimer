@@ -47,11 +47,12 @@ interface EventDao {
 }
 
 // 在文件底部添加扩展函数
-private fun Calendar.resetToStartOfPeriod(unit: Int) {
+fun Calendar.resetToStartOfPeriod(unit: Int) {
     when (unit) {
-        Calendar.YEAR -> set(Calendar.MONTH, Calendar.JANUARY)
+        Calendar.YEAR -> set(Calendar.DAY_OF_YEAR, 1)
         Calendar.MONTH -> set(Calendar.DAY_OF_MONTH, 1)
-        Calendar.DAY_OF_MONTH -> Unit // 已经由调用方设置
+        Calendar.WEEK_OF_MONTH -> set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        Calendar.DAY_OF_WEEK -> Unit // 已经由调用方设置
     }
     set(Calendar.HOUR_OF_DAY, 0)
     set(Calendar.MINUTE, 0)
@@ -73,10 +74,15 @@ fun EventDao.getEventsByDate(date: Date, timeUnit: Int): Flow<List<Event>> {
     return getEventsInRange(start, end)
 }
 
+fun EventDao.getEventsInRange(start: Calendar, end: Calendar): Flow<List<Event>> {
+    return getEventsInRange(start.timeInMillis, end.timeInMillis)
+}
+
 // 创建具体查询的扩展函数
 fun EventDao.getEventsByYear(date: Date) = getEventsByDate(date, Calendar.YEAR)
 fun EventDao.getEventsByMonth(date: Date) = getEventsByDate(date, Calendar.MONTH)
-fun EventDao.getEventsByDay(date: Date) = getEventsByDate(date, Calendar.DAY_OF_MONTH)
+fun EventDao.getEventsByWeek(date: Date) = getEventsByDate(date, Calendar.WEEK_OF_MONTH)
+fun EventDao.getEventsByDay(date: Date) = getEventsByDate(date, Calendar.DAY_OF_WEEK)
 
 
 

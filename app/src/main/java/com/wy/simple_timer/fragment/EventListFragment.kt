@@ -14,9 +14,17 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.wy.simple_timer.EventEditActivity
 import com.wy.simple_timer.adapter.EventAdapterEL
+import com.wy.simple_timer.database.Event
 import com.wy.simple_timer.database.getEventsByDay
+import com.wy.simple_timer.database.getEventsInRange
+import com.wy.simple_timer.database.resetToStartOfPeriod
 import com.wy.simple_timer.databinding.FragmentEventListBinding
 import com.wy.simple_timer.viewmodel.EventViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
@@ -26,6 +34,9 @@ class EventListFragment : Fragment() {
     private lateinit var eventAdapterEL: EventAdapterEL
     private lateinit var eventViewModel: EventViewModel
     private lateinit var onCreatedListener: () -> Unit
+    private var startCalendar: Calendar = Calendar.getInstance().apply { time = Date()  }
+    private var endCalendar: Calendar = Calendar.getInstance().apply { time = Date() }
+    private lateinit var eventsMutableStateFlow : MutableStateFlow<Flow<List<Event>>>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,6 +66,22 @@ class EventListFragment : Fragment() {
     private fun setupViewModel() {
         eventViewModel = ViewModelProvider(this)[EventViewModel::class.java]
         eventViewModel.setEvents(eventViewModel.getEventDao().getEventsByDay(Calendar.getInstance().time))
+        eventsMutableStateFlow = MutableStateFlow(eventViewModel.getEvents() ?: emptyFlow<List<Event>>())
+    }
+
+    fun setTimeRange(start: Calendar, end: Calendar) {
+        startCalendar = start
+        endCalendar = end
+        refreshEvents()
+    }
+
+    fun refreshEvents() {
+        startCalendar.resetToStartOfPeriod(Calendar.DAY_OF_MONTH)
+        endCalendar.resetToStartOfPeriod(Calendar.DAY_OF_MONTH)
+        endCalendar.add(Calendar.DAY_OF_MONTH, 1)
+        endCalendar.add(Calendar.MILLISECOND, -1)
+        eventViewModel.setEvents(eventViewModel.getEventDao().getEventsInRange(startCalendar, endCalendar))
+        eventViewModel.getEvents()?.also { eventsMutableStateFlow.value = it}
     }
 
     private fun setupRecyclerView() {
@@ -63,22 +90,20 @@ class EventListFragment : Fragment() {
             adapter = EventAdapterEL(requireActivity() as androidx.appcompat.app.AppCompatActivity).also {
                 eventAdapterEL = it
             }
+            eventAdapterEL.setOnItemClickListener { eventId ->
+                val intent = Intent(requireContext(), EventEditActivity::class.java).apply {
+                    putExtra("eventId", eventId)
+                }
+                startActivity(intent)
+            }
         }
     }
 
     // 在 observeEvents() 方法中添加适配器点击监听：
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeEvents() {
         viewLifecycleOwner.lifecycleScope.launch {
-            eventViewModel.getEvents()?.collect { events ->
-                eventAdapterEL.setData(events)
-                // 新增点击监听
-                eventAdapterEL.setOnItemClickListener { eventId ->
-                    val intent = Intent(requireContext(), EventEditActivity::class.java).apply {
-                        putExtra("eventId", eventId)
-                    }
-                    startActivity(intent)
-                }
-            }
+            eventsMutableStateFlow.flatMapLatest {it}.collect { eventAdapterEL.setData(it)}
         }
     }
 

@@ -11,6 +11,7 @@ import com.wy.simple_timer.database.Event
 import com.wy.simple_timer.databinding.ActivityTimeRecordBinding
 import com.wy.simple_timer.fragment.CategoryPickerFragment
 import com.wy.simple_timer.fragment.TimePickerFragment
+import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
@@ -45,10 +46,23 @@ class TimeRecordActivity : AppCompatActivity() {
     private fun setupTimePickerFragment() {
         timePickerFragment = TimePickerFragment().apply {
             setOnFragmentReadyListener {
-                val startTime = intent.getLongExtra("startTime", -1)
-                if (startTime != -1L) {
-                    setStartTime(Date(startTime))
+                var startTime = intent.getLongExtra("startTime", -1)
+                // 获取当前时间
+                val currentTime = System.currentTimeMillis()
+                val calendar = Calendar.getInstance()
+                calendar.timeInMillis = currentTime
+                // 如果startTime为-1，或者距离当前时间相差24小时以上，设置为当天的0点
+                if (startTime == -1L||startTime<0||startTime+24*60*60*1000<currentTime) {
+                    calendar.set(Calendar.HOUR_OF_DAY, 0)
+                    calendar.set(Calendar.MINUTE, 0)
+                    calendar.set(Calendar.SECOND, 0)
+                    startTime = calendar.timeInMillis
+                }else if(startTime>currentTime){
+                    startTime = currentTime
                 }
+                // 设置开始时间
+                setStartTime(Date(startTime))
+
             }
 
         }

@@ -21,12 +21,18 @@
     <string name="ExampleMinute">18分钟</string>
     <string name="time_range">%1$s~%2$s</string>
     <string name="minutes">%1$d分钟</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="EditString">编辑</string>
     <string name="DeleteString">删除</string>
     <string name="CategoryManagementString">分类管理</string>
     <string name="backupdatastring">数据备份</string>
     <string name="restoredata">恢复数据</string>
+    <string name="year">整年</string>
+    <string name="month">整月</string>
+    <string name="week">整周</string>
+    <string name="day">整天</string>
+    <string name="set_range_String">请设置起始日期\n或选择时间范围</string>
+    <string name="cancel">cancel</string>
+    <string name="ok">ok</string>
 
 </resources>
