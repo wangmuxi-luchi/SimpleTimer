@@ -20,8 +20,10 @@ import com.wy.simple_timer.database.EventDao
 import com.wy.simple_timer.viewmodel.EventViewModel
 import com.wy.simple_timer.database.MyDatabase
 import com.wy.simple_timer.databinding.ActivityCategoryDetailBinding
+import com.wy.simple_timer.viewmodel.isEarlierDay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class CategoryDetailActivity : AppCompatActivity() {
     private lateinit var cdBinding: ActivityCategoryDetailBinding
@@ -98,19 +100,20 @@ class CategoryDetailActivity : AppCompatActivity() {
                 it.getEventsByCategory(categoryID)}.collect { events ->
                 // 遍历 Event，计算总时间，总天数，平均每天时间
                 val totalTimes = events.size
-                var totalMinutes = 0L
+                val totalMinutes = events.sumOf { event -> event.endTime.timeInMillis - event.startTime.timeInMillis } / 1000 / 60
                 var totalDays = 0
-                var nowday = 0L
+                var nowday = Calendar.getInstance().apply {  timeInMillis = 0L }
                 for (event in events) {
-                    totalMinutes += (event.endTime.time - event.startTime.time) / 1000 / 60
-                    val endday = event.endTime.time / 1000 / 60 / 60 / 24
-                    if (endday > nowday) {
+                    if (!nowday.isEarlierDay(event.startTime)) {
                         totalDays += 1
-                        nowday = endday
+                        nowday = event.startTime
+                    }
+                    if (!nowday.isEarlierDay(event.endTime)) {
+                        totalDays += 1
+                        nowday = event.endTime
                     }
                 }
-                val minutesPerDay: Long
-                minutesPerDay = if (totalDays <= 0) {
+                val minutesPerDay = if (totalDays <= 0) {
                     0L
                 } else {
                     totalMinutes / totalDays

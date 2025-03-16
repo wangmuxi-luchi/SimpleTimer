@@ -96,6 +96,7 @@ class MainActivity : AppCompatActivity() {
             // 在这里处理时间范围的变化
             // 例如，更新事件列表
             eventListFragment.setTimeRange(start, end)
+            categoryManagementFragment.setTimeRange(start, end)
         }
     }
 
@@ -137,6 +138,7 @@ class MainActivity : AppCompatActivity() {
 //        binding.openCategoryManagementButton.setOnClickListener { launchCategoryManagementActivity() }
         binding.BackupDataButton.setOnClickListener { backupData() }
         binding.RestoreDataButton.setOnClickListener { restoreData() }
+        binding.addCategoryButton.setOnClickListener{ categoryManagementFragment.showAddCategoryDialog() }
 
         eventListFragment.setOnCreatedListener {
             eventListFragment.setOnClickListener {
@@ -154,10 +156,10 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val eventDao = MyDatabase.getDatabase(application).eventDao()
             val allEvents = eventDao.getAllEvents().firstOrNull()
-            val latestEvent = allEvents?.maxByOrNull { it.endTime.time }
+            val latestEvent = allEvents?.maxByOrNull { it.endTime.timeInMillis }
 
             Intent(this@MainActivity, TimeRecordActivity::class.java).apply {
-                latestEvent?.let { putExtra("startTime", it.endTime.time) }
+                latestEvent?.let { putExtra("startTime", it.endTime.timeInMillis) }
                 startActivity(this)
             }
         }

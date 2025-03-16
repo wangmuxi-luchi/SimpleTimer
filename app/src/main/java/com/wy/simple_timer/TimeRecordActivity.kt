@@ -13,7 +13,6 @@ import com.wy.simple_timer.fragment.CategoryPickerFragment
 import com.wy.simple_timer.fragment.TimePickerFragment
 import java.util.Calendar
 import java.util.Date
-import java.util.concurrent.TimeUnit
 
 class TimeRecordActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTimeRecordBinding
@@ -90,10 +89,10 @@ class TimeRecordActivity : AppCompatActivity() {
 
     // 在保存按钮点击前添加时间验证
     private fun saveRecord() {
-        val startTime = timePickerFragment.getStartTime()
-        val endTime = timePickerFragment.getEndTime()
+        val startDate = timePickerFragment.getStartTime()
+        val endDate = timePickerFragment.getEndTime()
 
-        if (startTime.after(endTime)) {
+        if (startDate.after(endDate)) {
             Toast.makeText(this, "开始时间不能晚于结束时间", Toast.LENGTH_SHORT).show()
             return
         }
@@ -107,6 +106,8 @@ class TimeRecordActivity : AppCompatActivity() {
         val remark = binding.notesEditText.text.toString()
 
         // 保存记录到数据库
+        val startTime = Calendar.getInstance().apply { time = startDate }
+        val endTime = Calendar.getInstance().apply { time = endDate }
         val event = Event(0, startTime, endTime, selectedCategoryId, remark)
         val intent = Intent(this, DatabaseManagementService::class.java).apply {
             action = "INSERT_EVENT"

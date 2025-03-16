@@ -34,5 +34,6 @@
     <string name="set_range_String">请设置起始日期\n或选择时间范围</string>
     <string name="cancel">cancel</string>
     <string name="ok">ok</string>
+    <string name="addCategory">添加分类</string>
 
 </resources>

@@ -71,12 +71,12 @@ abstract class BaseCategoryAdapterRV : ListAdapter<Category, BaseCategoryAdapter
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         Log.d("CategoryAdapter", "onBindViewHolder: position: $position")
-        updateSelection(holder, position)
+        updatePosition(holder, position)
         holder.bind(position, mutableListOf(""))
     }
     override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
         Log.d("CategoryAdapter", "onBindViewHolder-payloads: position: $position")
-        updateSelection(holder, position)
+        updatePosition(holder, position)
         holder.bind(position, payloads)
     }
 
@@ -84,7 +84,7 @@ abstract class BaseCategoryAdapterRV : ListAdapter<Category, BaseCategoryAdapter
         return categories.size
     }
 
-    fun updateSelection(holder: ViewHolder, position: Int) {
+    fun updatePosition(holder: ViewHolder, position: Int) {
         // 修正category的position
         val category = categories[position]
         if (category.position != position) {
@@ -109,5 +109,6 @@ abstract class BaseCategoryAdapterRV : ListAdapter<Category, BaseCategoryAdapter
     fun onItemSwiped(position: Int) {
         onSwipedListener(categories[position])
     }
+
 }
 

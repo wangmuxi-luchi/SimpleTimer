@@ -33,13 +33,21 @@ interface CategoryDao {
     @Query("SELECT * FROM categories WHERE id = :categoryId")
     fun getCategoryById(categoryId: Long): Flow<Category>
 
-    // 获取所有的一级分类，即 parentId 为 -1 的分类, 按 position 排序, 未归档的，即 archived = 0
+    // 获取所有未归档的一级分类，即 parentId 为 -1 的分类, 按 position 排序, ，即 archived = 0
     @Query("SELECT * FROM categories WHERE parentId = -1 AND archived = 0 ORDER BY position ASC")
     fun getUnarchivedRootCategoriesOrderedByPosition(): Flow<List<Category>>
 
-    // 获取所有的一级分类，即 parentId 为 -1 的分类, 按 position 排序, 归档的，即 archived = 1
+    // 获取所有归档的一级分类，即 parentId 为 -1 的分类, 按 position 排序, ，即 archived = 1
     @Query("SELECT * FROM categories WHERE parentId = -1 AND archived = 1 ORDER BY position ASC")
     fun getArchivedRootCategoriesOrderedByPosition(): Flow<List<Category>>
+
+    // 获取所有未归档的分类
+    @Query("SELECT * FROM categories WHERE archived = 0 ORDER BY position ASC")
+    fun getUnarchivedCategoriesOrderedByPosition(): Flow<List<Category>>
+
+    // 获取所有归档的分类
+    @Query("SELECT * FROM categories WHERE archived = 1 ORDER BY position ASC")
+    fun getArchivedCategoriesOrderedByPosition(): Flow<List<Category>>
 
     // 获取指定 parentId 的子分类
     @Query("SELECT * FROM categories WHERE parentId = :parentId")

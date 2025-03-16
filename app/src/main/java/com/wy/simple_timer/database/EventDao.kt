@@ -22,18 +22,20 @@ interface EventDao {
     @Query("UPDATE events SET startTime = :startTime, endTime = :endTime, categoryId = :categoryId, notes = :notes WHERE id = :eventId")
     suspend fun updateEvent(
         eventId: Long,
-        startTime: Date,
-        endTime: Date,
+        startTime: Calendar,
+        endTime: Calendar,
         categoryId: Long,
         notes: String
     )
-    @Query("SELECT * FROM events WHERE categoryId = :categoryId")
+    // 查询所有事件by 分类ID,按开始时间排序
+    @Query("SELECT * FROM events WHERE categoryId = :categoryId ORDER BY startTime ASC")
     fun getEventsByCategory(categoryId: Long): Flow<List<Event>>
 
     @Query("SELECT * FROM events WHERE id = :eventId")
     fun getEventById(eventId: Long): Flow<Event>
-    
-    @Query("SELECT * FROM events")
+
+    // 查询所有事件,按开始时间排序
+    @Query("SELECT * FROM events ORDER BY startTime ASC")
     fun getAllEvents(): Flow<List<Event>>
 
 //    @Query("SELECT * FROM events WHERE strftime('%Y', startTime) = strftime('%Y', :date)")
@@ -42,7 +44,8 @@ interface EventDao {
 //    @Query("SELECT * FROM events WHERE strftime('%Y-%m', startTime) = strftime('%Y-%m', :date)")
 //    fun getEventsByMonth(date: Date): Flow<List<Event>>
 
-    @Query("SELECT * FROM events WHERE (startTime BETWEEN :start AND :end) OR (endTime BETWEEN :start AND :end)")
+    // 按日期范围查询事件,按开始时间排序
+    @Query("SELECT * FROM events WHERE (startTime BETWEEN :start AND :end) OR (endTime BETWEEN :start AND :end) ORDER BY startTime ASC")
     fun getEventsInRange(start: Long, end: Long): Flow<List<Event>>
 }
 

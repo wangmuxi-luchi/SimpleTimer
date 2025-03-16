@@ -131,8 +131,8 @@ class EventEditActivity : AppCompatActivity() {
         Log.d("EventEditActivity", "initNotes Event : ${event}")
     }
     private fun initializeTimePickerWithEvent() {
-        timePickerFragment.setStartTime(event.startTime)
-        timePickerFragment.setEndTime(event.endTime)
+        timePickerFragment.setStartTime(event.startTime.time)
+        timePickerFragment.setEndTime(event.endTime.time)
         Log.d("EventEditActivity", "timePickerFragmentinit Event : ${event}")
     }
     private fun initializeCategoryPickerWithEvent() {

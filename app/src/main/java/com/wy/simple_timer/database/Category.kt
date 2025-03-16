@@ -51,27 +51,30 @@ data class Category(
 
 // 新增：统计event信息的过后的流
 data class CategoryWithEventInf(
-    val id: Long = 0,
-    val categoryName: String,
-    val categoryColor: String,
-    var position: Int,
-    val archived: Boolean,
-    val parentId: Long = -1,
+    val category: Category,
 
     var eventCount: Int = 0,
     var totalDuration: Long = 0L,
-    var totalDays: Int = 0
-){
-    constructor(category: Category, eventCount: Int, totalDuration: Long, totalDays: Int): this(
-        category.id,
-        category.categoryName,
-        category.categoryColor,
-        category.position,
-        category.archived,
-        category.parentId,
-        eventCount,
-        totalDuration,
-        totalDays
-    )
+    var totalDays: Int = 0,
+    val timeRatioToMax: Float = 0f
+)
+{
+    constructor(thisInst: CategoryWithEventInf, noPosition: Boolean) : this(
+        Category(
+            thisInst.category.id,
+            thisInst.category.categoryName,
+            thisInst.category.categoryColor,
+            thisInst.category.position,
+            thisInst.category.archived,
+            thisInst.category.parentId
+        ),
+        thisInst.eventCount,
+        thisInst.totalDuration,
+        thisInst.totalDays,
+        thisInst.timeRatioToMax
+    ){
+        if(noPosition){
+            this.category.position = -1
+        }
+    }
 }
-

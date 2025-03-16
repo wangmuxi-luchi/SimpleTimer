@@ -37,8 +37,8 @@ class EventListFragment : Fragment() {
     private lateinit var eventAdapterEL: EventAdapterEL
     private lateinit var eventViewModel: EventViewModel
     private lateinit var onCreatedListener: () -> Unit
-    private var startCalendar: Calendar = Calendar.getInstance().apply { time = Date()  }
-    private var endCalendar: Calendar = Calendar.getInstance().apply { time = Date() }
+    private var startCalendar: Calendar = Calendar.getInstance()
+    private var endCalendar: Calendar = Calendar.getInstance()
     private lateinit var eventsMutableStateFlow : MutableStateFlow<Flow<List<Event>>>
 
     override fun onCreateView(
@@ -105,10 +105,11 @@ class EventListFragment : Fragment() {
     }
 
     // 在 observeEvents() 方法中添加适配器点击监听：
-    @OptIn(ExperimentalCoroutinesApi::class)
+//    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeEvents() {
         viewLifecycleOwner.lifecycleScope.launch {
             eventsMutableStateFlow.flatMapLatest {it}.collect {
+                Log.d("EventListFragment", "observeEvents: $it")
                 eventAdapterEL.setData(it)}
         }
     }

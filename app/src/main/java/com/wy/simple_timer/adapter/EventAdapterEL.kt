@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.wy.simple_timer.R
-import com.wy.simple_timer.adapter.BaseEventAdapterRV.ViewHolder
 import com.wy.simple_timer.database.Event
 import com.wy.simple_timer.database.MyDatabase
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +44,7 @@ data class _Event(
     val categoryName: String,
     val categoryColor: Int,
     val duration: Long,
-    val level: Float)//TODO 生成_events
+    val level: Float)
 
 
 class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Event, EventAdapterEL.ViewHolder>(_EventDiffUtilCallback()) {
@@ -65,8 +64,8 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
             // 定义时间格式化器
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             // 格式化开始时间和结束时间
-            val startTimeFormatted = timeFormat.format(event.startTime)
-            val endTimeFormatted = timeFormat.format(event.endTime)
+            val startTimeFormatted = timeFormat.format(event.startTime.time)
+            val endTimeFormatted = timeFormat.format(event.endTime.time)
             // 设置时间
             timeTextView.text =
                 context.getString(R.string.time_range, startTimeFormatted, endTimeFormatted)
@@ -134,7 +133,7 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
             colorBackgroundDrawable.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
             backgroundDrawable.setLayerWidth(colorBackgroundIndex, levelWidth)
 
-            Log.d("EventAdapter", "updateItemsBackground levelWidth: $level, $levelWidth")
+//            Log.d("EventAdapter", "updateItemsBackground levelWidth: $level, $levelWidth")
             background = backgroundDrawable
             invalidate() // 刷新视图
         }
@@ -142,10 +141,10 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
 
     fun setData(newEvents: List<Event>) {
         // 计算总时长
-        Log.d("EventAdapter", "setData newEvents: $newEvents")
+//        Log.d("EventAdapter", "setData newEvents: $newEvents")
         if(!newEvents.isEmpty()){
-            val _maxDuration = newEvents.maxOf { it.endTime.time - it.startTime.time }
-            Log.d("EventAdapter", "_maxDuration")
+            val _maxDuration = newEvents.maxOf { it.endTime.timeInMillis - it.startTime.timeInMillis }
+//            Log.d("EventAdapter", "_maxDuration")
             context.lifecycleScope.launch {
                 val categoryDao = MyDatabase.getDatabase(context).categoryDao()
                 _events = newEvents.map{
@@ -154,14 +153,14 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
                     // 如果分类存在，则设置活动类型
                     if (categoryFirst == null) {
                         // 该分类已被删除，删除该类别下的所有事件
-                        Log.d("EventAdapter", "Category deleted, deleting events: ${it}, ${categoryFirst}")
+//                        Log.d("EventAdapter", "Category deleted, deleting events: ${it}, ${categoryFirst}")
                         val eventDao = MyDatabase.getDatabase(context).eventDao()
                         eventDao.deleteEventsByCategory(it.categoryId)
                         // TODO: 好像没有成功删除
                     }
                     val categoryColor = Color.parseColor(categoryFirst?.categoryColor?: "#000000")
                     val categoryName = categoryFirst?.categoryName ?: "错误类别"
-                    val duration = it.endTime.time - it.startTime.time
+                    val duration = it.endTime.timeInMillis - it.startTime.timeInMillis
                     if (_maxDuration != 0L){
                         val level = duration.toFloat() / _maxDuration.toFloat()
                         _Event(it, categoryName, categoryColor, duration, level)
@@ -169,10 +168,10 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
                         _Event(it, categoryName, categoryColor, duration, 0f)
                     }
                 }
-                Log.d("EventAdapter", "finish1: $_events")
+//                Log.d("EventAdapter", "finish1: $_events")
                 withContext(Dispatchers.Main) {
                     submitList(_events)
-                    Log.d("EventAdapter", "finish2: $_events")
+//                    Log.d("EventAdapter", "finish2: $_events")
                     return@withContext
                 }
             }
