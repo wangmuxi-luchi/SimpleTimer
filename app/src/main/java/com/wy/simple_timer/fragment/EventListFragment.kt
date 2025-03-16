@@ -108,7 +108,8 @@ class EventListFragment : Fragment() {
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeEvents() {
         viewLifecycleOwner.lifecycleScope.launch {
-            eventsMutableStateFlow.flatMapLatest {it}.collect { eventAdapterEL.setData(it)}
+            eventsMutableStateFlow.flatMapLatest {it}.collect {
+                eventAdapterEL.setData(it)}
         }
     }
 

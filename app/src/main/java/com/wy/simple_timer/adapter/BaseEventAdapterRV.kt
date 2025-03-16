@@ -47,9 +47,10 @@ abstract class BaseEventAdapterRV : ListAdapter<Event, BaseEventAdapterRV.ViewHo
 //    }
 
     // 设置数据
-    open fun setData(newEvents: List<Event>) {
+    open fun setData(newEvents: List<Event>): Boolean {
         events = getEvents(newEvents)
         submitList(events)
+        return false
     }
 
     // 更新数据
