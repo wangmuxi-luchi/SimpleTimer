@@ -2,7 +2,6 @@ package com.wy.simple_timer.fragment
 
 import CategoryDialog
 import android.content.Intent
-import android.icu.text.Transliterator.Position
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,13 +14,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.wy.simple_timer.CategoryDetailActivity
-import com.wy.simple_timer.DatabaseManagementService
 import com.wy.simple_timer.adapter.CategoryAdapterCMF
 import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.CategoryWithEventInf
-import com.wy.simple_timer.database.Event
 import com.wy.simple_timer.database.MyDatabase
-import com.wy.simple_timer.database.getEventsInRange
 import com.wy.simple_timer.database.resetToStartOfPeriod
 import com.wy.simple_timer.databinding.FragmentCategoryManagementBinding
 import com.wy.simple_timer.utils.ItemTouchCallbackCMF
@@ -29,31 +25,31 @@ import com.wy.simple_timer.viewmodel.CategoryWEIViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
-import java.util.Date
 
 
 class CategoryManagementFragment : Fragment() {
     private lateinit var binding: FragmentCategoryManagementBinding
     private lateinit var viewModel: CategoryWEIViewModel
     private lateinit var categoryAdapter: CategoryAdapterCMF
-    private lateinit var onCreatedListener: () -> Unit
-    private lateinit var onBlankClickListener: () -> Unit
+//    private lateinit var onCreatedListener: () -> Unit
+//    private lateinit var onBlankClickListener: () -> Unit
+    private var onRecycleViewClick: (View) -> Unit = {}
     private lateinit var categotyWithEventInfMutableStateFlow : MutableStateFlow<Flow<List<CategoryWithEventInf>>>
     private var startCalendar: Calendar = Calendar.getInstance()
     private var endCalendar: Calendar = Calendar.getInstance()
 
-    fun setOnBlankClickListener(listener: () -> Unit) {
-        onBlankClickListener = listener
-    }
-    fun setOnCreatedListener(listener: () -> Unit) {
-        onCreatedListener = listener
-    }
+
+//    fun setOnBlankClickListener(listener: () -> Unit) {
+//        onBlankClickListener = listener
+//    }
+//    fun setOnCreatedListener(listener: () -> Unit) {
+//        onCreatedListener = listener
+//    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,12 +65,20 @@ class CategoryManagementFragment : Fragment() {
         setupViewModel()
         setupRecyclerView()
         setupAdapterCallbacks()
-        onCreatedListener()
+//        onCreatedListener()
+        binding.categoryListRecycleView.setOnClickListener(OnRecycleViewClickListener())
     }
 
-
-    fun setOnClickListener(listener: View.OnClickListener) {
-        binding.categoryListRecycleView.setOnClickListener(listener)
+    // 设置RecycleView的点击事件回调
+    inner class OnRecycleViewClickListener: View.OnClickListener {
+        override fun onClick(v: View?) {
+            v?.let {
+                onRecycleViewClick(it)
+            }
+        }
+    }
+    fun setOnRecycleViewClickListener(listener: (View) -> Unit) {
+        onRecycleViewClick = listener
     }
 
     private fun setupViewModel() {
@@ -167,12 +171,12 @@ class CategoryManagementFragment : Fragment() {
             
 
             setOnSwipedListener { category, position ->
-                saveRecord(category.id, position)
+                fastSaveRecord(category.id, position)
             }
             
             setOnBindViewHolder { categoryWithEventInf, position ->
                 // 在这里更新 position
-                // TODO: 修改category排序的功能有待实现，拖动时不会重新调用onBindViewHolder，所以在这里更新position无效，需要在onItemMovedListener中更新或者找其他实现逻辑
+                // TODO: 修改category排序的功能有待实现，拖动时不会重新调用 onBindViewHolder，所以在这里更新position无效，而且每次调用 onBindViewHolder都要检测一次过于繁琐，没有必要。需要在onItemMovedListener中更新或者找其他实现逻辑
 //                Log.d("CategoryManagementFragment", "category position update:" +
 //                        "categoryname: ${categoryWithEventInf.category.categoryName}; oldposition: ${categoryWithEventInf.category.position} position:${position}")
 //                categoryWithEventInf.apply {
@@ -211,7 +215,7 @@ class CategoryManagementFragment : Fragment() {
         categoryDialog.show("", selectedColor)
     }
 
-    private fun saveRecord(cateegoryID: Long, position: Int) {
+    private fun fastSaveRecord(cateegoryID: Long, position: Int) {
         lifecycleScope.launch {
             val eventDao = MyDatabase.getDatabase(requireContext()).eventDao()
             val allEvents = eventDao.getAllEvents().firstOrNull()
@@ -220,28 +224,39 @@ class CategoryManagementFragment : Fragment() {
             // 结束时间为当前时间
             val endTime = Calendar.getInstance()
 
-            val currentCalendar = Calendar.getInstance()
-            val startTime = (latestEvent?.endTime ?: currentCalendar)
-            currentCalendar.apply {
-                add(Calendar.DAY_OF_WEEK, -1)
-                // 如果startTime距离当前时间相差24小时以上，设置为当天的0点
-                if (startTime.timeInMillis< timeInMillis) {
-                    add(Calendar.DAY_OF_WEEK, 1)
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    return@apply
-                }
-                add(Calendar.DAY_OF_WEEK, 1)
-                add(Calendar.MINUTE, -1)
-                // 如果startTime距离当前时间相差1分钟以内，return
-                if (startTime.timeInMillis>timeInMillis) {
-                    //Toast
-                    Toast.makeText(requireContext(), "时长不能小于一分钟", Toast.LENGTH_SHORT).show()
-                    categoryAdapter.notifyItemChanged(position)
-                    return@launch
-                }
+            val dayStartCalendar = Calendar.getInstance()
+            dayStartCalendar.apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
             }
+            val startTime = (latestEvent?.endTime ?: dayStartCalendar)
+            if (startTime.timeInMillis>Calendar.getInstance().apply { add(Calendar.MINUTE, -1) }.timeInMillis) {
+                //Toast
+                Toast.makeText(requireContext(), "时长不能小于一分钟", Toast.LENGTH_SHORT).show()
+                categoryAdapter.notifyItemChanged(position)
+                return@launch
+            }
+//            currentCalendar.apply {
+//                add(Calendar.DAY_OF_WEEK, -1)
+//                // 如果startTime距离当前时间相差24小时以上，设置为当天的0点
+//                if (startTime.timeInMillis< timeInMillis) {
+//                    add(Calendar.DAY_OF_WEEK, 1)
+//                    set(Calendar.HOUR_OF_DAY, 0)
+//                    set(Calendar.MINUTE, 0)
+//                    set(Calendar.SECOND, 0)
+//                    return@apply
+//                }
+//                add(Calendar.DAY_OF_WEEK, 1)
+//                add(Calendar.MINUTE, -1)
+//                // 如果startTime距离当前时间相差1分钟以内，return
+//                if (startTime.timeInMillis>timeInMillis) {
+//                    //Toast
+//                    Toast.makeText(requireContext(), "时长不能小于一分钟", Toast.LENGTH_SHORT).show()
+//                    categoryAdapter.notifyItemChanged(position)
+//                    return@launch
+//                }
+//            }
 //            val startTime = Date(_startTime)
 
             val remark = ""

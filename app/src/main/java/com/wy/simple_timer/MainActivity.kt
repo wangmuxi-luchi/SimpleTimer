@@ -4,17 +4,14 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
-import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentTransaction
@@ -86,9 +83,8 @@ class MainActivity : AppCompatActivity() {
         handleWindowInsets()
         loadEventListFragment() // 加载事件列表
         loadCategoryManagementFragment() // 加载分类管理
-        setupClickListeners()
         setupTimeRange()
-
+        setupClickListeners()
     }
 
     private fun setupTimeRange() {
@@ -114,7 +110,6 @@ class MainActivity : AppCompatActivity() {
         fragmentTransaction.replace(R.id.fragment_container1, EventListFragment().also {
             eventListFragment = it
         })
-
         fragmentTransaction.commit()
     }
 
@@ -139,17 +134,9 @@ class MainActivity : AppCompatActivity() {
         binding.BackupDataButton.setOnClickListener { backupData() }
         binding.RestoreDataButton.setOnClickListener { restoreData() }
         binding.addCategoryButton.setOnClickListener{ categoryManagementFragment.showAddCategoryDialog() }
+        categoryManagementFragment.setOnRecycleViewClickListener { changeSelectedFragment(2) }
+        eventListFragment.setOnClickListener { changeSelectedFragment(1) }
 
-        eventListFragment.setOnCreatedListener {
-            eventListFragment.setOnClickListener {
-                changeSelectedFragment(1)
-            }
-        }
-        categoryManagementFragment.setOnCreatedListener {
-            categoryManagementFragment.setOnClickListener {
-                changeSelectedFragment(2)
-            }
-        }
     }
 
     private fun launchTimeRecordActivity() {

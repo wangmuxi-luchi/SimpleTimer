@@ -1,13 +1,9 @@
 package com.wy.simple_timer.viewmodel
 
 import android.app.Application
-import android.content.Context
-import android.content.Intent
 import android.util.Log
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.wy.simple_timer.DatabaseManagementService
 import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.CategoryWithEventInf
 import com.wy.simple_timer.database.Event
@@ -93,17 +89,21 @@ class CategoryWEIViewModel(application: Application): AndroidViewModel(applicati
 
     private fun combineCategoryAndEvent(categoryList: List<Category>, eventList: List<Event>) : List<CategoryWithEventInf>{
 //        Log.d("CategoryWEIViewModel", "combineCategoryAndEvent: ${categoryList.size} ${eventList.size}")
-        val categoryDurationList = categoryList.map {
-            val eventsOfCategory = eventList.filter { event -> event.categoryId == it.id }
-            eventsOfCategory.sumOf { event -> event.endTime.timeInMillis - event.startTime.timeInMillis }
-        }
-        val maxDuration = categoryDurationList.maxOf { it }
-        return categoryList.map {
+        if (categoryList.isEmpty()) return emptyList()
+//        val categoryDurationList = categoryList.map {
+//            val eventsOfCategory = eventList.filter { event -> event.categoryId == it.id }
+//            eventsOfCategory.sumOf { event -> event.endTime.timeInMillis - event.startTime.timeInMillis }
+//        }
+//        val maxDuration = if(categoryDurationList.isEmpty()) 0L else categoryDurationList.maxOf { it }
+//        val maxDuration = categoryDurationList.maxOf { it }
+        val categoryWithEventInfList = categoryList.map {
             val eventsOfCategory = eventList.filter { event -> event.categoryId == it.id }
             // 遍历 Event，计算总时间，总天数，平均每天时间
+            if (eventsOfCategory.isEmpty()) return@map CategoryWithEventInf(it, 0, 0, 0, 0f)
+
             val eventCount = eventsOfCategory.size
             val categoryDuration = eventsOfCategory.sumOf { event -> event.endTime.timeInMillis - event.startTime.timeInMillis }
-            val timeRatioToMax = if (maxDuration == 0L) 0f else categoryDuration.toFloat() / maxDuration.toFloat()
+//            val timeRatioToMax = if (maxDuration == 0L) 0f else categoryDuration.toFloat() / maxDuration.toFloat()
             var totalDays = 0
             var nowday = Calendar.getInstance().apply {  timeInMillis = 0L }
             for (event in eventsOfCategory) {
@@ -118,8 +118,19 @@ class CategoryWEIViewModel(application: Application): AndroidViewModel(applicati
             }
 //            it.position = 0 // 由于position与子项的View无关，因此设为0，防止不必要的刷新
             // 将计算结果添加到 Category 中
-            Log.d("CategoryWEIViewModel", "combineCategoryAndEvent: ${it.categoryName} ${eventCount} ${categoryDuration} ${totalDays} ${timeRatioToMax}")
-            CategoryWithEventInf(it, eventCount, categoryDuration, totalDays, timeRatioToMax)
+            CategoryWithEventInf(it, eventCount, categoryDuration, totalDays, 0f)
+        }
+        val maxDuration = categoryWithEventInfList.map { it.totalDuration }.maxOf { it }
+        if (maxDuration == 0L) return categoryWithEventInfList
+        else return categoryWithEventInfList.apply {
+            forEach {
+                it.timeRatioToMax = it.totalDuration.toFloat() / maxDuration.toFloat()
+                Log.d(
+                    "CategoryWEIViewModel",
+                    "combineCategoryAndEvent: ${it.category.categoryName} " +
+                            "${it.eventCount} ${it.totalDuration} ${it.totalDays} ${it.timeRatioToMax}"
+                )
+            }
         }
     }
 }

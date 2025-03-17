@@ -56,7 +56,7 @@ data class CategoryWithEventInf(
     var eventCount: Int = 0,
     var totalDuration: Long = 0L,
     var totalDays: Int = 0,
-    val timeRatioToMax: Float = 0f
+    var timeRatioToMax: Float = 0f
 )
 {
     constructor(thisInst: CategoryWithEventInf, noPosition: Boolean) : this(

@@ -43,7 +43,7 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
         private val categoryText: TextView = itemView.findViewById(R.id.category_name)
         fun bind(position: Int) {
             val categoryWithEventInf = categoryWithEventInfList[position]
-            Log.d("CategoryAdapter", "bind: $categoryWithEventInf")
+//            Log.d("CategoryAdapterCMF", "bind: $categoryWithEventInf")
             val color = Color.parseColor(categoryWithEventInf.category.categoryColor)
             colorDot.setColorFilter(color)
             categoryText.text = categoryWithEventInf.category.categoryName
@@ -55,7 +55,7 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
             itemView.post {
                 updateItemsBackground(itemView, categoryWithEventInf.timeRatioToMax, color)
             }
-            Log.d("CategoryAdapter", "bind finish")
+//            Log.d("CategoryAdapterCMF", "bind finish")
         }
     }
 
@@ -99,7 +99,7 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
     }
 
     private fun updateItemsBackground(itemView: View, level: Float, color: Int){
-        Log.d("CategoryAdapter", "updateItemsBackground: view: $itemView, level: $level, color: $color")
+//        Log.d("CategoryAdapterCMF", "updateItemsBackground: view: $itemView, level: $level, color: $color")
         itemView.apply{
             val levelWidth = (width * level * 0.85).toInt()
 
@@ -115,7 +115,7 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
 //            Log.d("EventAdapter", "updateItemsBackground levelWidth: $level, $levelWidth")
             background = backgroundDrawable
             invalidate() // 刷新视图
-            Log.d("CategoryAdapter", "updateItemsBackground finish levelWidth: $level, $levelWidth")
+//            Log.d("CategoryAdapterCMF", "updateItemsBackground finish levelWidth: $level, $levelWidth")
         }
     }
 }
