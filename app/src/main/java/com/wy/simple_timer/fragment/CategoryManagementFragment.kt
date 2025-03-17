@@ -172,14 +172,15 @@ class CategoryManagementFragment : Fragment() {
             
             setOnBindViewHolder { categoryWithEventInf, position ->
                 // 在这里更新 position
-                Log.d("CategoryManagementFragment", "category position update:" +
-                        "categoryname: ${categoryWithEventInf.category.categoryName}; oldposition: ${categoryWithEventInf.category.position} position:${position}")
-                categoryWithEventInf.apply {
-                    if (position != category.position) {
-                        category.position = position
-                        viewModel.updateCategory(category)
-                    }
-                }
+                // TODO: 修改category排序的功能有待实现，拖动时不会重新调用onBindViewHolder，所以在这里更新position无效，需要在onItemMovedListener中更新或者找其他实现逻辑
+//                Log.d("CategoryManagementFragment", "category position update:" +
+//                        "categoryname: ${categoryWithEventInf.category.categoryName}; oldposition: ${categoryWithEventInf.category.position} position:${position}")
+//                categoryWithEventInf.apply {
+//                    if (position != category.position) {
+//                        category.position = position
+//                        viewModel.updateCategory(category)
+//                    }
+//                }
             }
         }
     }

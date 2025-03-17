@@ -54,7 +54,10 @@ fun Calendar.resetToStartOfPeriod(unit: Int) {
     when (unit) {
         Calendar.YEAR -> set(Calendar.DAY_OF_YEAR, 1)
         Calendar.MONTH -> set(Calendar.DAY_OF_MONTH, 1)
-        Calendar.WEEK_OF_MONTH -> set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        Calendar.WEEK_OF_MONTH -> {
+            add(Calendar.DAY_OF_WEEK, -1)
+            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        }
         Calendar.DAY_OF_WEEK -> Unit // 已经由调用方设置
     }
     set(Calendar.HOUR_OF_DAY, 0)

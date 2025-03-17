@@ -59,13 +59,13 @@ class CategoryWEIViewModel(application: Application): AndroidViewModel(applicati
                 }
             }
         }
-        if (this.startDate != startDate || this.endDate != endDate){
-            this.startDate = startDate
-            this.endDate = endDate
+        if (this.startDate.timeInMillis != startDate.timeInMillis || this.endDate.timeInMillis != endDate.timeInMillis){
+            this.startDate.timeInMillis = startDate.timeInMillis
+            this.endDate.timeInMillis = endDate.timeInMillis
             events = eventDao.getEventsInRange(startDate.timeInMillis, endDate.timeInMillis)
+//            Log.d("CategoryWEIViewModel", "setDateMode: ${this.startDate.get(Calendar.DAY_OF_WEEK)} ${this.endDate.get(Calendar.DAY_OF_WEEK)}")
         }
         refreshCategories()
-        Log.d("CategoryWEIViewModel", "setDateMode: ")
     }
 
     fun get_Categories(): Flow<List<CategoryWithEventInf>> {
@@ -118,6 +118,7 @@ class CategoryWEIViewModel(application: Application): AndroidViewModel(applicati
             }
 //            it.position = 0 // 由于position与子项的View无关，因此设为0，防止不必要的刷新
             // 将计算结果添加到 Category 中
+            Log.d("CategoryWEIViewModel", "combineCategoryAndEvent: ${it.categoryName} ${eventCount} ${categoryDuration} ${totalDays} ${timeRatioToMax}")
             CategoryWithEventInf(it, eventCount, categoryDuration, totalDays, timeRatioToMax)
         }
     }

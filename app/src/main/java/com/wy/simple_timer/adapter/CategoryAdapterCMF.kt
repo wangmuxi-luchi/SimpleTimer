@@ -73,7 +73,8 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
 
     fun setData(newData: List<CategoryWithEventInf>) {
         categoryWithEventInfList = newData.filter { it.category.parentId == -1L } // 只显示一级分类
-        submitList(categoryWithEventInfList.map{ CategoryWithEventInf(it, true) })
+//        submitList(categoryWithEventInfList.map{ CategoryWithEventInf(it, true) })
+        submitList(categoryWithEventInfList)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
