@@ -22,14 +22,33 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        create("packJKS"){
+            keyAlias = "key" // 别名
+            keyPassword = "APpassword" // 密码
+            storeFile = file("${rootDir.absolutePath}/keystore/key.jks") // 存储keystore或者是jks文件的路径
+            storePassword = "Appassword" // 存储密码
+        }
+    }
 
     buildTypes {
+        val mySignConfig = signingConfigs.getByName("packJKS")
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = mySignConfig
+        }
+        debug {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            // 配置debug的签名信息
+            signingConfig = mySignConfig
         }
     }
     compileOptions {
