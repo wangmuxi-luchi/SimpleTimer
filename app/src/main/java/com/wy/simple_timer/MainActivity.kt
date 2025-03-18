@@ -1,6 +1,7 @@
 package com.wy.simple_timer
 
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
@@ -8,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -40,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var eventListFragment: EventListFragment
     private lateinit var categoryManagementFragment: CategoryManagementFragment
 
+//    private lateinit var timeTickReceiver: TimeRickReceiver
+    private lateinit var myBroadcastReceiver: MyBroadcastReceiver
 
     // 备份和恢复的 Launcher
     private val backupLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -85,6 +89,45 @@ class MainActivity : AppCompatActivity() {
         loadCategoryManagementFragment() // 加载分类管理
         setupTimeRange()
         setupClickListeners()
+
+        // 监听日期变化
+//        val intentFilter = android.content.IntentFilter()
+//        intentFilter.addAction(Intent.ACTION_TIME_TICK)
+//        timeTickReceiver = TimeRickReceiver()
+//        registerReceiver(timeTickReceiver, intentFilter)
+
+        // 接收广播
+        val myIntentFilter = android.content.IntentFilter()
+//        myIntentFilter.addAction(Intent.ACTION_USER_PRESENT)
+        myIntentFilter.addAction(Intent.ACTION_DATE_CHANGED)
+//        myIntentFilter.addAction(Intent.ACTION_TIME_TICK)
+        myBroadcastReceiver = MyBroadcastReceiver()
+        registerReceiver(myBroadcastReceiver, myIntentFilter)
+        myBroadcastReceiver.setOnDateChangedListener {
+            Log.d("MainActivity", "onCreate: onDateChangedListener")
+            binding.dateRangeTextView.refreshView()
+        }
+        Log.d("MainActivity", "onCreate: ")
+    }
+    override fun onResume() {
+        super.onResume()
+        binding.dateRangeTextView.refreshView()
+        Log.d("MainActivity", "onResume: ")
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+//        unregisterReceiver(timeTickReceiver)
+        unregisterReceiver(myBroadcastReceiver)
+    }
+
+    inner class TimeRickReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+//            Log.d("TimeTickReceiver", "onReceive:  intent ${intent}" )
+            if (intent?.action == Intent.ACTION_TIME_TICK) {
+                binding.dateRangeTextView.refreshView()
+            }
+        }
+
     }
 
     private fun setupTimeRange() {

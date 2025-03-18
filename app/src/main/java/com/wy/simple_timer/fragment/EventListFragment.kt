@@ -15,9 +15,10 @@ import com.wy.simple_timer.adapter.EventAdapterEL
 import com.wy.simple_timer.database.Event
 import com.wy.simple_timer.database.getEventsByDay
 import com.wy.simple_timer.database.getEventsInRange
-import com.wy.simple_timer.database.resetToStartOfPeriod
 import com.wy.simple_timer.databinding.FragmentEventListBinding
+import com.wy.simple_timer.utils.resetToStartOfPeriod
 import com.wy.simple_timer.viewmodel.EventViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -107,7 +108,7 @@ class EventListFragment : Fragment() {
     }
 
     // 在 observeEvents() 方法中添加适配器点击监听：
-//    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeEvents() {
         viewLifecycleOwner.lifecycleScope.launch {
             eventsMutableStateFlow.flatMapLatest {it}.collect {

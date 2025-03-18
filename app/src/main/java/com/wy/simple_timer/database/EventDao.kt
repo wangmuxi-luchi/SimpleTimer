@@ -3,6 +3,7 @@ package com.wy.simple_timer.database
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.wy.simple_timer.utils.resetToStartOfPeriod
 import kotlinx.coroutines.flow.Flow
 import java.util.Calendar
 import java.util.Date
@@ -49,22 +50,6 @@ interface EventDao {
     fun getEventsInRange(start: Long, end: Long): Flow<List<Event>>
 }
 
-// 在文件底部添加扩展函数
-fun Calendar.resetToStartOfPeriod(unit: Int) {
-    when (unit) {
-        Calendar.YEAR -> set(Calendar.DAY_OF_YEAR, 1)
-        Calendar.MONTH -> set(Calendar.DAY_OF_MONTH, 1)
-        Calendar.WEEK_OF_MONTH -> {
-            add(Calendar.DAY_OF_WEEK, -1)
-            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-        }
-        Calendar.DAY_OF_WEEK -> Unit // 已经由调用方设置
-    }
-    set(Calendar.HOUR_OF_DAY, 0)
-    set(Calendar.MINUTE, 0)
-    set(Calendar.SECOND, 0)
-    set(Calendar.MILLISECOND, 0)
-}
 
 fun EventDao.getEventsByDate(date: Date, timeUnit: Int): Flow<List<Event>> {
     val calendar = Calendar.getInstance().apply { time = date }

@@ -18,11 +18,12 @@ import com.wy.simple_timer.adapter.CategoryAdapterCMF
 import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.CategoryWithEventInf
 import com.wy.simple_timer.database.MyDatabase
-import com.wy.simple_timer.database.resetToStartOfPeriod
 import com.wy.simple_timer.databinding.FragmentCategoryManagementBinding
 import com.wy.simple_timer.utils.ItemTouchCallbackCMF
+import com.wy.simple_timer.utils.resetToStartOfPeriod
 import com.wy.simple_timer.viewmodel.CategoryWEIViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -120,6 +121,7 @@ class CategoryManagementFragment : Fragment() {
         categotyWithEventInfMutableStateFlow.value = viewModel.get_Categories()
         Log.d("CategoryManagementFragment", "refreshCategory: startCalendar: ${startCalendar.time} endCalendar: ${endCalendar.time}")
     }
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeCategories() {
         var shouldTriggerCollect = true
         viewLifecycleOwner.lifecycleScope.launch {

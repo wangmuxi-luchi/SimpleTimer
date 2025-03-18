@@ -1,15 +1,14 @@
 package com.wy.simple_timer.custom_views
 
 import android.annotation.SuppressLint
-import android.app.DatePickerDialog
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
-import com.wy.simple_timer.database.resetToStartOfPeriod
+import com.wy.simple_timer.utils.isSameDay
+import com.wy.simple_timer.utils.resetToStartOfPeriod
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 @SuppressLint("ClickableViewAccessibility")
@@ -18,17 +17,20 @@ class DateRangeTextView(context: Context, attrs: AttributeSet?, defStyleAttr: In
     constructor(context: Context, attrs: AttributeSet?): this(context, attrs, 0)
     constructor(context: Context): this(context, null)
 
+    // 用于日期变化时的操作
+    private var onDateChangedListener: ()->Unit = {}
+
     private var onTimeTextChangedListener: ((Calendar, Calendar) -> Unit) = { _, _ ->}
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     private var lastTouchX = 0f
     private var widgetWidth: Float = 0f
 
+    private var isToday: Boolean = false
+    private var currentCalendar: Calendar = Calendar.getInstance()
     private val startCalendar: Calendar = Calendar.getInstance()
     private val endCalendar: Calendar = Calendar.getInstance()
 
     init {
-        // 初始化日期
-        setDateRange(System.currentTimeMillis(), System.currentTimeMillis())
 
         setOnTouchListener{v, event ->
             if(event.action == MotionEvent.ACTION_DOWN){
@@ -47,6 +49,20 @@ class DateRangeTextView(context: Context, attrs: AttributeSet?, defStyleAttr: In
                 pickEndDate()
             }
         }
+        onDateChangedListener = {
+            refreshText()
+        }
+        // 初始化日期
+        setDateRange(System.currentTimeMillis(), System.currentTimeMillis())
+        onDateChangedListener()
+    }
+
+    fun refreshView() {
+        if(!currentCalendar.isSameDay(Calendar.getInstance())){
+            if(isToday) setDateRange(System.currentTimeMillis(), System.currentTimeMillis())
+
+            onDateChangedListener()
+        }
     }
     // 刷新文本
     private fun refreshText() {
@@ -55,9 +71,10 @@ class DateRangeTextView(context: Context, attrs: AttributeSet?, defStyleAttr: In
         val endDateText = dateFormat.format(endCalendar.time)
         //设置文本
         if(startDateText == endDateText){
-            val currentDate = Date(System.currentTimeMillis())
-            if(dateFormat.format(currentDate) == startDateText){
+            currentCalendar.timeInMillis = System.currentTimeMillis()
+            if(currentCalendar.isSameDay(startCalendar)){
                 text = "今天"
+                isToday = true
             }else{
                 text = startDateText
             }
@@ -76,10 +93,9 @@ class DateRangeTextView(context: Context, attrs: AttributeSet?, defStyleAttr: In
     }
 
     // 用于设置日期范围
-    fun setDateRange(start: Long, end: Long) {
+    private fun setDateRange(start: Long, end: Long) {
         startCalendar.timeInMillis = start
         endCalendar.timeInMillis = end
-        refreshText()
     }
 
     private fun setDateRange(year: Int, month: Int, dayOfMonth: Int, unit: Int) {
