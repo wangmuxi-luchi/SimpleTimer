@@ -21,7 +21,7 @@ jobs:
     - name: Make Gradle executable
       run: chmod +x ./gradlew
     - name: Build Release APK
-      run: ./gradlew assembleRelease
+      run: ./gradlew assembleRelease --stacktrace
     - name: Releasing using Hub
       uses:  wangmuxi-luchi/release-apk@main
       env:
