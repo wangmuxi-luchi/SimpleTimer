@@ -27,7 +27,7 @@ android {
             keyAlias = "key" // 别名
             keyPassword = "APpassword" // 密码
             storeFile = file("${rootDir.absolutePath}/keystore/key.jks") // 存储keystore或者是jks文件的路径
-            storePassword = "Appassword" // 存储密码
+            storePassword = "APpassword" // 存储密码
         }
     }
 
