@@ -2,6 +2,11 @@ name: Build & Publish Release APK
 
 on:
   workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Test scenario tags'
+        required: false
+        type: string
   push:
     tags:
       - '*'
