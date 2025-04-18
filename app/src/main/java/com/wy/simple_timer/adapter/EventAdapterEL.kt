@@ -1,6 +1,5 @@
 package com.wy.simple_timer.adapter
 
-import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
@@ -47,9 +46,12 @@ data class _Event(
     val level: Float)
 
 
+
+
 class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Event, EventAdapterEL.ViewHolder>(_EventDiffUtilCallback()) {
 //    private var events = emptyList<Event>()
     private var _events = emptyList<_Event>()
+    private var isCategorySelectedListener: (Long) -> Boolean = { _ ->true}
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)  {
         private val timeTextView: TextView = itemView.findViewById(R.id.time)
@@ -128,7 +130,7 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
             val backgroundDrawable = ContextCompat.getDrawable(context,
                 R.drawable.background_item_main) as LayerDrawable
 
-            val colorBackgroundIndex = backgroundDrawable.findIndexByLayerId(R.id.color_background)
+            val colorBackgroundIndex = backgroundDrawable.findIndexByLayerId(R.id.color_level_bar)
             val colorBackgroundDrawable = backgroundDrawable.getDrawable(colorBackgroundIndex) as GradientDrawable
             colorBackgroundDrawable.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
             backgroundDrawable.setLayerWidth(colorBackgroundIndex, levelWidth)
@@ -139,39 +141,55 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
         }
     }
 
+    fun setIsSelectedListener(listener: (Long) -> Boolean) {
+        isCategorySelectedListener = listener
+    }
+    private fun isCategorySelected(categoryID: Long): Boolean {
+       return isCategorySelectedListener(categoryID)
+    }
+
     fun setData(newEvents: List<Event>) {
         // 计算总时长
 //        Log.d("EventAdapter", "setData newEvents: $newEvents")
         if(!newEvents.isEmpty()){
-            val _maxDuration = newEvents.maxOf { it.endTime.timeInMillis - it.startTime.timeInMillis }
-//            Log.d("EventAdapter", "_maxDuration")
             context.lifecycleScope.launch {
                 val categoryDao = MyDatabase.getDatabase(context).categoryDao()
-                _events = newEvents.map{
+                val eventsAfterFilter = newEvents.map {
                     // 检查分类是否存在
                     val categoryFirst = categoryDao.getCategoryById(it.categoryId).firstOrNull()
-                    // 如果分类存在，则设置活动类型
                     if (categoryFirst == null) {
                         // 该分类已被删除，删除该类别下的所有事件
-//                        Log.d("EventAdapter", "Category deleted, deleting events: ${it}, ${categoryFirst}")
                         val eventDao = MyDatabase.getDatabase(context).eventDao()
                         eventDao.deleteEventsByCategory(it.categoryId)
                         // TODO: 好像没有成功删除
                     }
-                    val categoryColor = Color.parseColor(categoryFirst?.categoryColor?: "#000000")
-                    val categoryName = categoryFirst?.categoryName ?: "错误类别"
-                    val duration = it.endTime.timeInMillis - it.startTime.timeInMillis
-                    if (_maxDuration != 0L){
-                        val level = duration.toFloat() / _maxDuration.toFloat()
-                        _Event(it, categoryName, categoryColor, duration, level)
-                    }else{
-                        _Event(it, categoryName, categoryColor, duration, 0f)
-                    }
+                    Pair(categoryFirst, it)
+                }.filter {
+                    (category, _) -> category != null &&
+                            isCategorySelected(category.id) } // 过滤掉不存在或未选中的分类
+                if (eventsAfterFilter.isEmpty()){
+                    Log.d("EventAdapter", "empty")
+                    _events = emptyList()
+                    submitList(_events)
+                    return@launch
                 }
-//                Log.d("EventAdapter", "finish1: $_events")
+
+                val _maxDuration = eventsAfterFilter.map { (category, event) -> event }.maxOf { it.endTime.timeInMillis - it.startTime.timeInMillis }
+                _events = eventsAfterFilter.map{ (category, event) ->
+                       val categoryColor = Color.parseColor(category?.categoryColor?: "#000000")
+                       val categoryName = category?.categoryName?: "错误类别"
+                       val duration = event.endTime.timeInMillis - event.startTime.timeInMillis
+                       if (_maxDuration!= 0L){
+                           val level = duration.toFloat() / _maxDuration.toFloat()
+                           _Event(event, categoryName, categoryColor, duration, level)
+                       }else{
+                           _Event(event, categoryName, categoryColor, duration, 0f)
+                       }
+                   }
+
                 withContext(Dispatchers.Main) {
                     submitList(_events)
-//                    Log.d("EventAdapter", "finish2: $_events")
+                    //                    Log.d("EventAdapter", "finish2: $_events")
                     return@withContext
                 }
             }

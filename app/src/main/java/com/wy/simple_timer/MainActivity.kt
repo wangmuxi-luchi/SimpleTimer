@@ -42,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var eventListFragment: EventListFragment
     private lateinit var categoryManagementFragment: CategoryManagementFragment
 
+
+
 //    private lateinit var timeTickReceiver: TimeRickReceiver
     private lateinit var myBroadcastReceiver: MyBroadcastReceiver
 
@@ -88,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         loadEventListFragment() // 加载事件列表
         loadCategoryManagementFragment() // 加载分类管理
         setupTimeRange()
-        setupClickListeners()
+        setupListeners()
 
         // 监听日期变化
 //        val intentFilter = android.content.IntentFilter()
@@ -139,15 +141,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 加载分类管理Fragment到第二个容器
-    private fun loadCategoryManagementFragment() {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container2, CategoryManagementFragment().also {
-               categoryManagementFragment = it
-            })
-            .commit()
-    }
-
+    // 加载事件列表Fragment到第一个容器
     private fun loadEventListFragment() {
         val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.fragment_container1, EventListFragment().also {
@@ -156,6 +150,15 @@ class MainActivity : AppCompatActivity() {
         fragmentTransaction.commit()
     }
 
+
+    // 加载分类管理Fragment到第二个容器
+    private fun loadCategoryManagementFragment() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container2, CategoryManagementFragment().also {
+               categoryManagementFragment = it
+            })
+            .commit()
+    }
     private fun setupBinding() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -171,7 +174,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun setupClickListeners() {
+    private fun setupListeners() {
         binding.openRecordActivityButton.setOnClickListener { launchTimeRecordActivity() }
 //        binding.openCategoryManagementButton.setOnClickListener { launchCategoryManagementActivity() }
         binding.BackupDataButton.setOnClickListener { backupData() }
@@ -179,6 +182,9 @@ class MainActivity : AppCompatActivity() {
         binding.addCategoryButton.setOnClickListener{ categoryManagementFragment.showAddCategoryDialog() }
         categoryManagementFragment.setOnRecycleViewClickListener { changeSelectedFragment(2) }
         eventListFragment.setOnClickListener { changeSelectedFragment(1) }
+        eventListFragment.setIsCategorySelectedListener { categoryId ->
+            categoryManagementFragment.isCategorySelected(categoryId) }
+        categoryManagementFragment.setOnSCCListener { eventListFragment.onSCC() }
 
     }
 
@@ -200,7 +206,7 @@ class MainActivity : AppCompatActivity() {
 //        startActivity(Intent(this, CategoryManagementActivity::class.java))
 //    }
 
-    // preferencesDataStore 操作，保存URL
+    // preferencesDataStore 操作，保存文件夹路径URL
     private suspend fun saveLastDirectoryUri(uri: Uri) {
         dataStore.edit { preferences ->
             preferences[stringPreferencesKey("last_directory_uri")] = uri.toString()
