@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.wy.simple_timer.CategoryDetailActivity
 import com.wy.simple_timer.adapter.CategoryAdapterCMF
+import com.wy.simple_timer.adapter.WorkMode
 import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.CategoryWithEventInf
 import com.wy.simple_timer.database.MyDatabase
@@ -37,13 +38,12 @@ class CategoryManagementFragment : Fragment() {
     private lateinit var binding: FragmentCategoryManagementBinding
     private lateinit var viewModel: CategoryWEIViewModel
     private lateinit var categoryAdapter: CategoryAdapterCMF
-//    private lateinit var onCreatedListener: () -> Unit
+
+    //    private lateinit var onCreatedListener: () -> Unit
 //    private lateinit var onBlankClickListener: () -> Unit
-    private var onRecycleViewClick: (View) -> Unit = {}
-    private lateinit var categotyWithEventInfMutableStateFlow : MutableStateFlow<Flow<List<CategoryWithEventInf>>>
+    private lateinit var categotyWithEventInfMutableStateFlow: MutableStateFlow<Flow<List<CategoryWithEventInf>>>
     private var startCalendar: Calendar = Calendar.getInstance()
     private var endCalendar: Calendar = Calendar.getInstance()
-    private var listenerIsCategorySelected: (Long) -> Boolean = { _ ->true} // 用于传递分类选择状态的回调函数,由分类管理fragment负责处理
 
 
 //    fun setOnBlankClickListener(listener: () -> Unit) {
@@ -72,20 +72,17 @@ class CategoryManagementFragment : Fragment() {
     }
 
     // 设置RecycleView的点击事件回调
-    inner class OnRecycleViewClickListener: View.OnClickListener {
+    inner class OnRecycleViewClickListener : View.OnClickListener {
         override fun onClick(v: View?) {
             v?.let {
                 onRecycleViewClick(it)
             }
         }
     }
-    fun setOnRecycleViewClickListener(listener: (View) -> Unit) {
-        onRecycleViewClick = listener
-    }
 
-    fun isCategorySelected(categoryID: Long): Boolean {
-        return listenerIsCategorySelected(categoryID)
-    }
+//    fun isCategorySelected(categoryID: Long): Boolean {
+//        return listenerIsCategorySelected(categoryID)
+//    }
 
     private fun setupViewModel() {
         viewModel = ViewModelProvider(this)[CategoryWEIViewModel::class.java]
@@ -95,15 +92,23 @@ class CategoryManagementFragment : Fragment() {
         endCalendar.add(Calendar.DAY_OF_MONTH, 1)
         endCalendar.add(Calendar.MILLISECOND, -1)
 
-        viewModel.setDateMode(CategoryWEIViewModel.DATA_MODE_ALL_UNARCHIVED, startCalendar, endCalendar)
+        viewModel.setDateMode(
+            CategoryWEIViewModel.DATA_MODE_ALL_UNARCHIVED,
+            startCalendar,
+            endCalendar
+        )
         categotyWithEventInfMutableStateFlow = MutableStateFlow(viewModel.get_Categories())
-        Log.d("CategoryManagementFragment", "setupViewModel: startCalendar: ${startCalendar.time} endCalendar: ${endCalendar.time}")
+        Log.d(
+            "CategoryManagementFragment",
+            "setupViewModel: startCalendar: ${startCalendar.time} endCalendar: ${endCalendar.time}"
+        )
     }
 
     private fun setupRecyclerView() {
         binding.categoryListRecycleView.apply {
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-            adapter = CategoryAdapterCMF().also {categoryAdapter = it}
+            layoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+            adapter = CategoryAdapterCMF().also { categoryAdapter = it }
 
             val itemTouchHelper = ItemTouchHelper(ItemTouchCallbackCMF(categoryAdapter))
             itemTouchHelper.attachToRecyclerView(this)
@@ -116,66 +121,41 @@ class CategoryManagementFragment : Fragment() {
         endCalendar = end
         refreshCategoryWithEventInf()
     }
-    fun refreshCategoryWithEventInf() {
+
+    private fun refreshCategoryWithEventInf() {
         startCalendar.resetToStartOfPeriod(Calendar.DAY_OF_MONTH)
         endCalendar.resetToStartOfPeriod(Calendar.DAY_OF_MONTH)
         endCalendar.add(Calendar.DAY_OF_MONTH, 1)
         endCalendar.add(Calendar.MILLISECOND, -1)
 
-        viewModel.setDateMode(CategoryWEIViewModel.DATA_MODE_ALL_UNARCHIVED, startCalendar, endCalendar)
+        viewModel.setDateMode(
+            CategoryWEIViewModel.DATA_MODE_ALL_UNARCHIVED,
+            startCalendar,
+            endCalendar
+        )
         categotyWithEventInfMutableStateFlow.value = viewModel.get_Categories()
-        Log.d("CategoryManagementFragment", "refreshCategory: startCalendar: ${startCalendar.time} endCalendar: ${endCalendar.time}")
+        Log.d(
+            "CategoryManagementFragment",
+            "refreshCategory: startCalendar: ${startCalendar.time} endCalendar: ${endCalendar.time}"
+        )
     }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeCategories() {
-        var shouldTriggerCollect = true
         viewLifecycleOwner.lifecycleScope.launch {
             categotyWithEventInfMutableStateFlow.flatMapLatest {
 
                 Log.d("CategoryManagementFragment", "categories flatMapLatest:${it}")
                 it
-//                emit("")
             }.collect { categories ->
-//                Log.d("CategoryManagementFragment", "categories collect:")
                 withContext(Dispatchers.Main) {
                     categoryAdapter.setData(categories)
                 }
-//                Log.d("CategoryManagementFragment", "categories collect: $categories")
             }
-
-
-//            if (shouldTriggerCollect) {
-//                categotyWithEventInfMutableStateFlow.value.collect { categories ->
-//                    categoryAdapter.setData(categories)
-//                    Log.d("CategoryManagementFragment", "categories collect: $categories")
-//                }
-//            }else{
-//                // 不触发collect
-//                Log.d("CategoryManagementFragment", "categories collect: not trigger")
-//            }
         }
         Log.d("CategoryManagementFragment", "setOnItemMovedListener")
-//        categoryAdapter.setOnItemMovedListener { fromPosition, toPosition ->
-//            shouldTriggerCollect = false
-//            for (i in maxOf(fromPosition, toPosition) downTo minOf(fromPosition, toPosition)) {
-//                val category = categoryAdapter.getCategory(i)
-//                Log.d("CategoryManagementFragment", "category position update:" +
-//                        "categoryname: ${category.categoryName}; oldposition: ${category.position} position:${i}")
-//                category.position = i
-//                viewModel.updateCategory(category)
-//            }
-//            shouldTriggerCollect = true
-//        }
     }
 
-    // callbacks of adapter
-    private var onSCCListener: () -> Unit = {}//onSelectedCategoryChangedListener
-    fun setOnSCCListener(listener:() -> Unit){
-        onSCCListener = listener
-    }
-    private fun SCCListener(){
-        onSCCListener()
-    }
     private fun setupAdapterCallbacks() {
         categoryAdapter.apply {
             setOnItemClickListener { categoryID ->
@@ -183,12 +163,12 @@ class CategoryManagementFragment : Fragment() {
                     putExtra("categoryID", categoryID)
                 })
             }
-            
+
 
             setOnSwipedListener { category, position ->
                 fastSaveRecord(category.id, position)
             }
-            
+
             setOnBindViewHolder { categoryWithEventInf, position ->
                 // 最开始的版本中在这里更新 position,现在这个功能已经在其他位置实现了
 //                Log.d("CategoryManagementFragment", "category position update:" +
@@ -201,25 +181,36 @@ class CategoryManagementFragment : Fragment() {
 //                }
             }
             setOnUpdateCPListener { categoryWithEventInfList ->
-                categoryWithEventInfList.withIndex().forEach{ (position, categoryWithEventInf) ->
+                categoryWithEventInfList.withIndex().forEach { (position, categoryWithEventInf) ->
                     categoryWithEventInf.apply {
                         if (position != category.position) {
-                            Log.d("CategoryManagementFragment", "category position update:" +
-                                    "categoryname: ${categoryWithEventInf.category.categoryName}; oldposition: ${categoryWithEventInf.category.position} position:${position}")
+                            Log.d(
+                                "CategoryManagementFragment", "category position update:" +
+                                        "categoryname: ${categoryWithEventInf.category.categoryName}; oldposition: ${categoryWithEventInf.category.position} position:${position}"
+                            )
                             category.position = position
                             viewModel.updateCategory(category)
                         }
                     }
                 }
             }
-            // 调用adapter的函数来实现类型选中判断
-            listenerIsCategorySelected = { categoryID ->
-                isSelected(categoryID)
+
+            setOnSCChangedListener { onSCCListener() }
+
+            categoryAdapter.setOnWorkModeChangeListener { workMode ->
+                onWorkModeChangeListener(
+                    workMode
+                )
             }
 
-            setOnSCChangedListener { SCCListener() }
+            // adapter的功能接口
+            isCategorySelected = { categoryID ->
+                isSelected(categoryID)
+            }
+            unSelectAllCategory = {unSelectAll()}
         }
     }
+
     var selectedColor = "#808080" // 默认颜色
     fun showAddCategoryDialog() {
         val categoryDialog = CategoryDialog(requireActivity()).apply {
@@ -227,11 +218,11 @@ class CategoryManagementFragment : Fragment() {
                 override fun onConfirmEdit(newName: String, newColor: String) {
                     if (newName.isNotEmpty()) {
                         val newCategory = Category(
-                            0, 
-                            newName, 
-                            newColor, 
-                            categoryAdapter.itemCount - 1, 
-                            false, 
+                            0,
+                            newName,
+                            newColor,
+                            categoryAdapter.itemCount - 1,
+                            false,
                             -1
                         )
                         viewModel.insertCategory(newCategory)
@@ -263,44 +254,39 @@ class CategoryManagementFragment : Fragment() {
                 set(Calendar.SECOND, 0)
             }
             val startTime = (latestEvent?.endTime ?: dayStartCalendar)
-            if (startTime.timeInMillis>Calendar.getInstance().apply { add(Calendar.MINUTE, -1) }.timeInMillis) {
+            if (startTime.timeInMillis > Calendar.getInstance()
+                    .apply { add(Calendar.MINUTE, -1) }.timeInMillis
+            ) {
                 //Toast
                 Toast.makeText(requireContext(), "时长不能小于一分钟", Toast.LENGTH_SHORT).show()
                 categoryAdapter.notifyItemChanged(position)
                 return@launch
             }
-//            currentCalendar.apply {
-//                add(Calendar.DAY_OF_WEEK, -1)
-//                // 如果startTime距离当前时间相差24小时以上，设置为当天的0点
-//                if (startTime.timeInMillis< timeInMillis) {
-//                    add(Calendar.DAY_OF_WEEK, 1)
-//                    set(Calendar.HOUR_OF_DAY, 0)
-//                    set(Calendar.MINUTE, 0)
-//                    set(Calendar.SECOND, 0)
-//                    return@apply
-//                }
-//                add(Calendar.DAY_OF_WEEK, 1)
-//                add(Calendar.MINUTE, -1)
-//                // 如果startTime距离当前时间相差1分钟以内，return
-//                if (startTime.timeInMillis>timeInMillis) {
-//                    //Toast
-//                    Toast.makeText(requireContext(), "时长不能小于一分钟", Toast.LENGTH_SHORT).show()
-//                    categoryAdapter.notifyItemChanged(position)
-//                    return@launch
-//                }
-//            }
-//            val startTime = Date(_startTime)
-
             val remark = ""
-//            setOnLastItemClickListener { showAddCategoryDialog() }
             // 保存记录到数据库
             viewModel.insertEvent(startTime, endTime, cateegoryID, remark)
-//            val event = Event(0, startTime, endTime, cateegoryID, remark)
-//            val intent = Intent(requireContext(), DatabaseManagementService::class.java).apply {
-//                action = "INSERT_EVENT"
-//                putExtra("object", event)
-//            }
-//            requireActivity().startService(intent)
         }
     }
+
+    // 设置回调函数，如果要实现对应的功能，需要调用以下函数设置对应的回调
+    private var onRecycleViewClick: (View) -> Unit = {}
+    fun setOnRecycleViewClickListener(listener: (View) -> Unit) {// 整个recycleview区域被点击
+        onRecycleViewClick = listener
+    }
+
+    // adapter的回调中本层没有处理的部分，将其包装后传递到上一层
+    private var onSCCListener: () -> Unit = {}//onSelectedCategoryChangedListener,更新选中的分类列表回调
+    fun setOnSCCListener(listener: () -> Unit) {
+        onSCCListener = listener
+    }
+
+    private var onWorkModeChangeListener: (WorkMode) -> Unit = { _ -> }//更新工作模式回调，目前主要用来通知是否出于选中状态
+    fun setOnWorkModeChangeListener(listener: (WorkMode) -> Unit) {
+        onWorkModeChangeListener = listener
+    }
+
+
+    // adapter对外接口,将adapter的功能暴露给外界
+    var isCategorySelected: (Long) -> Boolean = { _ -> true } // 用于传递分类选择状态的回调函数,由分类管理fragment负责处理
+    var unSelectAllCategory: () -> Unit = {}
 }
