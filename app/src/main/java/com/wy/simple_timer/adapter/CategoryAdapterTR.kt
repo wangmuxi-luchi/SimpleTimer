@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.wy.simple_timer.R
 import com.wy.simple_timer.database.Category
 
-class CategoryAdapterTR : BaseCategoryAdapterRV() {
+class CategoryAdapterTR(private val initCategoryId: Long = -1) : BaseCategoryAdapterRV() {
 //    private var onLastItemClickListener: () -> Unit = {}
     
     // 新增：设置最后一个元素的回调函数
@@ -22,6 +22,15 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
 //    }
     // 新增：记录当前选中的位置
     private var currentPosition = 0
+    private var currentPositionInit = false
+    // 设置数据
+    override fun setData(newCategories: List<Category>) {
+        categories = getCategories(newCategories)
+        if (!currentPositionInit){
+            setCurrentPosition(initCategoryId)
+        }
+        submitList(categories)
+    }
     // 获取当前选中的位置
     fun getCurrentPosition(): Int {
         return currentPosition
@@ -116,6 +125,7 @@ class CategoryAdapterTR : BaseCategoryAdapterRV() {
     }
     fun setCurrentPosition(categoryId: Long) {
         val position = categories.indexOfFirst { it.id == categoryId }
+        Log.d("CategoryAdapter", "set current position by categoryId ${categoryId} to $position")
         if (position != -1) setCurrentPosition(position)
     }
     
