@@ -76,13 +76,14 @@ class EventEditActivity : AppCompatActivity() {
     }
 
     private fun setupCategoryPickerFragment() {
-        categoryPickerFragment = CategoryPickerFragment().apply {
-            setOnFragmentReadyListener {
-                Log.d("EventEditActivity", "onCategoryPickerFragment")
-                initializeCategoryPickerWithEvent()
-                Log.d("EventEditActivity", "finish initializeCategoryPickerWithEvent")
-            }
-        }
+        categoryPickerFragment = CategoryPickerFragment(event.categoryId)
+//            .apply {
+//            setOnFragmentReadyListener {
+//                Log.d("EventEditActivity", "onCategoryPickerFragment")
+//                initializeCategoryPickerWithEvent()
+//                Log.d("EventEditActivity", "finish initializeCategoryPickerWithEvent")
+//            }
+//        }
         supportFragmentManager.beginTransaction()
            .replace(R.id.category_picker_container, categoryPickerFragment)
            .commit()
@@ -135,10 +136,10 @@ class EventEditActivity : AppCompatActivity() {
         timePickerFragment.setEndTime(event.endTime.time)
         Log.d("EventEditActivity", "timePickerFragmentinit Event : ${event}")
     }
-    private fun initializeCategoryPickerWithEvent() {
-        categoryPickerFragment.setCurrentCategory(event.categoryId)
-        Log.d("EventEditActivity", "categoryPickerFragmentinit Event : ${event}")
-    }
+//    private fun initializeCategoryPickerWithEvent() {
+//        categoryPickerFragment.setCurrentCategory(event.categoryId)
+//        Log.d("EventEditActivity", "categoryPickerFragmentinit Event : ${event}")
+//    }
 //    private fun initializeUIWithEvent() {
 //        timePickerFragment.setStartTime(event.startTime)
 //        timePickerFragment.setEndTime(event.endTime)

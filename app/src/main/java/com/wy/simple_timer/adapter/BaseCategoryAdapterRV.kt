@@ -59,7 +59,7 @@ abstract class BaseCategoryAdapterRV : ListAdapter<Category, BaseCategoryAdapter
     // 获取数据列表
     abstract fun getCategories(newCategories: List<Category>): List<Category>
     // 设置数据
-    fun setData(newCategories: List<Category>) {
+    open fun setData(newCategories: List<Category>) {
         categories = getCategories(newCategories)
         submitList(categories)
     }

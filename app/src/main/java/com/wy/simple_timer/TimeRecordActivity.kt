@@ -71,9 +71,10 @@ class TimeRecordActivity : AppCompatActivity() {
     }
 
     private fun setupCategoryPickerFragment() {
-        categoryPickerFragment = CategoryPickerFragment().apply {
-            setOnFragmentReadyListener {}
-        }
+        categoryPickerFragment = CategoryPickerFragment()
+//            .apply {
+//            setOnFragmentReadyListener {}
+//        }
         supportFragmentManager.beginTransaction()
            .replace(R.id.category_picker_container, categoryPickerFragment)
            .commit()

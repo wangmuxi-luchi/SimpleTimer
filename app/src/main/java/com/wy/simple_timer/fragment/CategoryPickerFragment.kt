@@ -19,15 +19,21 @@ import com.wy.simple_timer.viewmodel.CategoryViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class CategoryPickerFragment : Fragment() {
-    private lateinit var onFragmentReadyListener: () -> Unit
+class CategoryPickerFragment(private val initCategoryId: Long = -1) : Fragment() {
+//    private lateinit var onFragmentReadyListener: () -> Unit
     private lateinit var binding: FragmentCategoryPickerBinding
     private lateinit var categoryAdapter: CategoryAdapterTR
     private lateinit var categoryViewModel: CategoryViewModel
 
-    fun setOnFragmentReadyListener(listener: () -> Unit) {
-        onFragmentReadyListener = listener
-    }
+//    init {
+//        if (initCategoryId!=-1L){
+//            setCurrentCategory(initCategoryId)
+//        }
+//    }
+
+//    fun setOnFragmentReadyListener(listener: () -> Unit) {
+//        onFragmentReadyListener = listener
+//    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,8 +54,7 @@ class CategoryPickerFragment : Fragment() {
         val spacingInPixels = resources.getDimensionPixelSize(R.dimen.small_spacing)
         binding.categoryListRecycleView.addItemDecoration(SpacingItemDecoration(spacingInPixels))
 
-        Log.d("CategoryPickerFragment", "onViewCreated")
-        onFragmentReadyListener()
+//        onFragmentReadyListener()
     }
 
     private fun setupViewModel() {
@@ -59,7 +64,7 @@ class CategoryPickerFragment : Fragment() {
     private fun setupRecyclerView() {
         binding.categoryListRecycleView.apply {
             layoutManager = GridLayoutManager(requireContext(), 4)
-            categoryAdapter = CategoryAdapterTR()
+            categoryAdapter = CategoryAdapterTR(initCategoryId)
 //                .also
 //            {
 //                it.setOnLastItemClickListener {
