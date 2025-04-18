@@ -24,7 +24,7 @@ class ItemTouchCallbackCMF(private val adapter: CategoryAdapterCMF): ItemTouchHe
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
         Log.d("ItemTouchCallback", "onSwiped")
 //        adapter.notifyItemChanged(viewHolder.bindingAdapterPosition)
-        adapter.onItemSwiped(viewHolder.bindingAdapterPosition)
+        adapter.onItemSwiped(viewHolder.bindingAdapterPosition, direction)
 
         Log.d("ItemTouchCallback", "onSwiped:$(viewHolder.bindingAdapterPosition)")
     }

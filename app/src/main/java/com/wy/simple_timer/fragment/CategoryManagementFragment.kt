@@ -43,6 +43,7 @@ class CategoryManagementFragment : Fragment() {
     private lateinit var categotyWithEventInfMutableStateFlow : MutableStateFlow<Flow<List<CategoryWithEventInf>>>
     private var startCalendar: Calendar = Calendar.getInstance()
     private var endCalendar: Calendar = Calendar.getInstance()
+    private var listenerIsCategorySelected: (Long) -> Boolean = { _ ->true} // 用于传递分类选择状态的回调函数,由分类管理fragment负责处理
 
 
 //    fun setOnBlankClickListener(listener: () -> Unit) {
@@ -80,6 +81,10 @@ class CategoryManagementFragment : Fragment() {
     }
     fun setOnRecycleViewClickListener(listener: (View) -> Unit) {
         onRecycleViewClick = listener
+    }
+
+    fun isCategorySelected(categoryID: Long): Boolean {
+        return listenerIsCategorySelected(categoryID)
     }
 
     private fun setupViewModel() {
@@ -163,6 +168,14 @@ class CategoryManagementFragment : Fragment() {
 //        }
     }
 
+    // callbacks of adapter
+    private var onSCCListener: () -> Unit = {}//onSelectedCategoryChangedListener
+    fun setOnSCCListener(listener:() -> Unit){
+        onSCCListener = listener
+    }
+    private fun SCCListener(){
+        onSCCListener()
+    }
     private fun setupAdapterCallbacks() {
         categoryAdapter.apply {
             setOnItemClickListener { categoryID ->
@@ -188,6 +201,12 @@ class CategoryManagementFragment : Fragment() {
 //                    }
 //                }
             }
+            // 调用adapter的函数来实现类型选中判断
+            listenerIsCategorySelected = { categoryID ->
+                isSelected(categoryID)
+            }
+
+            setOnSCChangedListener { SCCListener() }
         }
     }
     var selectedColor = "#808080" // 默认颜色

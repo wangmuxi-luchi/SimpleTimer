@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
 
+// 自定义的 RecyclerView，用于处理点击事件
+
 class CustomRecycleView(context: Context, attrs: AttributeSet?, defStyleAttr: Int = 2130903957) : RecyclerView(context, attrs, defStyleAttr) {
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 2130903957)
     override fun performClick(): Boolean {

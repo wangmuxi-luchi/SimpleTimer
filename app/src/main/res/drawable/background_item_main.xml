@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/transparent_background">
+        android:id="@+id/background">
         <shape android:shape="rectangle">
             <solid android:color="@color/transparent"/>
         </shape>
     </item>
     <item
-        android:id="@+id/color_background"
+        android:id="@+id/color_level_bar"
         android:gravity="end"
         android:width="50dp">
         <shape

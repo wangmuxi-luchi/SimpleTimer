@@ -21,6 +21,7 @@ import com.wy.simple_timer.viewmodel.EventViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -30,10 +31,11 @@ class EventListFragment : Fragment() {
     private lateinit var eventAdapterEL: EventAdapterEL
     private lateinit var eventViewModel: EventViewModel
 //    private lateinit var onCreatedListener: () -> Unit
-    private var onRecycleViewClick: (View) -> Unit = {}
+    private var isCategorySelectedListener: (Long) -> Boolean = { _ ->true}
     private var startCalendar: Calendar = Calendar.getInstance()
     private var endCalendar: Calendar = Calendar.getInstance()
     private lateinit var eventsMutableStateFlow : MutableStateFlow<Flow<List<Event>>>
+    private var onRecycleViewClick: (View) -> Unit = {}
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,6 +69,13 @@ class EventListFragment : Fragment() {
     }
     fun setOnClickListener(listener:(View) -> Unit) {
         onRecycleViewClick = listener
+    }
+    // 检查分类是否被选中
+    fun setIsCategorySelectedListener(listener: (Long) -> Boolean) {
+        isCategorySelectedListener = listener
+    }
+    private fun isCategorySelected(categoryId: Long): Boolean {
+        return isCategorySelectedListener(categoryId)
     }
 
     private fun setupViewModel() {
@@ -104,7 +113,12 @@ class EventListFragment : Fragment() {
                 }
                 startActivity(intent)
             }
+            eventAdapterEL.setIsSelectedListener{categoryID -> isCategorySelected(categoryID)}
         }
+    }
+
+    fun onSCC(){
+        refreshEvents()
     }
 
     // 在 observeEvents() 方法中添加适配器点击监听：
