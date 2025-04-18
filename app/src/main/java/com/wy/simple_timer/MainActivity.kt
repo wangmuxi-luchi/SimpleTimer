@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import com.wy.simple_timer.adapter.WorkMode
 import com.wy.simple_timer.fragment.CategoryManagementFragment
 
 // 在类外部定义 DataStore
@@ -179,13 +180,24 @@ class MainActivity : AppCompatActivity() {
 //        binding.openCategoryManagementButton.setOnClickListener { launchCategoryManagementActivity() }
         binding.BackupDataButton.setOnClickListener { backupData() }
         binding.RestoreDataButton.setOnClickListener { restoreData() }
-        binding.addCategoryButton.setOnClickListener{ categoryManagementFragment.showAddCategoryDialog() }
-        categoryManagementFragment.setOnRecycleViewClickListener { changeSelectedFragment(2) }
-        eventListFragment.setOnClickListener { changeSelectedFragment(1) }
+        binding.addCategoryButton.setOnClickListener{ onAddCategoryButtonClick() }
+
+        setupCMFFunctions()
+        eventListFragment.setOnClickListener { onFragmentClickListener(1) }
         eventListFragment.setIsCategorySelectedListener { categoryId ->
             categoryManagementFragment.isCategorySelected(categoryId) }
         categoryManagementFragment.setOnSCCListener { eventListFragment.onSCC() }
+    }
+    private fun setupCMFFunctions(){
+        categoryManagementFragment.apply {
+            // 回调函数实现
+            setOnRecycleViewClickListener { onFragmentClickListener(2) }
+            setOnWorkModeChangeListener { workMode -> onCMFWorkModeChangeListener(workMode) }
 
+            // 功能接口定义
+            addCategoryCMF = {showAddCategoryDialog()}
+            unSelectAllCategoryCMF = {unSelectAllCategory()} // TODO
+        }
     }
 
     private fun launchTimeRecordActivity() {
@@ -265,8 +277,32 @@ class MainActivity : AppCompatActivity() {
         binding.fragmentContainers.invalidate()
 
     }
-    private fun changeSelectedFragment(index: Int) {
+    private fun onFragmentClickListener(index: Int) {
         selectedFragment = index
         updateShadowDivider()
     }
+    private fun onCMFWorkModeChangeListener(workMode: WorkMode) {
+        workModeCMF = workMode
+        if (workModeCMF == WorkMode.NORMAL){
+            binding.addCategoryButton.text = "添加分类"
+        }else if (workModeCMF == WorkMode.SELECT){
+            binding.addCategoryButton.text = "取消选择"
+        }
+    }
+
+    // 回调函数的实现
+    private fun onAddCategoryButtonClick(){
+        if (workModeCMF == WorkMode.NORMAL){
+            addCategoryCMF()
+        }else if (workModeCMF == WorkMode.SELECT){
+            unSelectAllCategoryCMF()
+        }
+    }
+
+    // 子模块的功能接口、状态变量定义
+    // categoryManagementFragment
+    private var addCategoryCMF: () -> Unit = {}//添加分类
+    private var unSelectAllCategoryCMF: () -> Unit ={}//取消选中，
+    private var workModeCMF: WorkMode = WorkMode.NORMAL//工作状态
+
 }
