@@ -20,6 +20,8 @@ import com.wy.simple_timer.R
 import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.CategoryWithEventInf
 import java.util.Collections
+import java.util.Timer
+import java.util.TimerTask
 
 // 对比两个元素是否相同，用于支持ListAdapter的submitList功能
 class CategoryWithEventInfDiffUtilCallback : DiffUtil.ItemCallback<CategoryWithEventInf>() {
@@ -51,13 +53,14 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
     private var onSwipedListener: (Category, Int) -> Unit = {_, _ ->}
     private var onBindViewHolder: (CategoryWithEventInf, Int) -> Unit = { _, _ -> }
     private var onSCCListener: () -> Unit = {}//onSelectedCategoryChangedListener
+    private var onUpdateCPListener: (List<CategoryWithEventInf>) -> Unit = { _ -> }//onUpdateCategoryPosition,更新分类排序回调
 
     inner class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val colorDot: ImageView = itemView.findViewById(R.id.color_dot)
         private val categoryText: TextView = itemView.findViewById(R.id.category_name)
 //        private val lock = Any()
         fun bind(position: Int) {
-            Log.d("CategoryAdapterCMF", "bind start")
+//            Log.d("CategoryAdapterCMF", "bind start")
             val categoryWithEventInf = categoryWithEventInfList[position]
 //            Log.d("CategoryAdapterCMF", "bind: $categoryWithEventInf")
             val color = Color.parseColor(categoryWithEventInf.category.categoryColor)
@@ -83,11 +86,11 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
             if (workMode == WorkMode.SELECT && isSelected(categoryWithEventInf.category)) {
                 selected = true
             }
-           Log.d("CategoryAdapterCMF", "selected:${selected}")
+//           Log.d("CategoryAdapterCMF", "selected:${selected}")
             itemView.post {
                 updateItemsBackground(itemView, categoryWithEventInf.timeRatioToMax, color, selected)
             }
-            Log.d("CategoryAdapterCMF", "bind finish")
+//            Log.d("CategoryAdapterCMF", "bind finish")
         }
     }
 
@@ -119,16 +122,15 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
     }
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
-        Log.d("CategoryAdapter", "onBindViewHolder: $position")
+//        Log.d("CategoryAdapter", "onBindViewHolder: $position")
         holder.bind(position)
     }
 
 
-    fun collectionsSwap(i: Int, j: Int) {
-        // TODO: 目前只交换了视图，没有更新数据库
-        Collections.swap(categoryWithEventInfList, i, j)
-        submitList(categoryWithEventInfList)
-    }
+//    fun collectionsSwap(i: Int, j: Int) {
+//        Collections.swap(categoryWithEventInfList, i, j)
+//        submitList(categoryWithEventInfList)
+//    }
 
     fun select(category: Category){
         if (workMode == WorkMode.NORMAL){ // 普通模式下，修改工作模式为选中模式
@@ -142,7 +144,7 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
         if (position != -1) { // 选中的分类存在于列表中
             notifyItemChanged(position) // 刷新选中的分类的视图
         }
-       Log.d("CategoryAdapterCMF", "select: $selectedCategoryList")
+//       Log.d("CategoryAdapterCMF", "select: $selectedCategoryList")
     }
     private fun mulSelect(mulPosition: Int){
         if (workMode == WorkMode.NORMAL){ // 普通模式下，修改工作模式为选中模式
@@ -213,21 +215,52 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
 //            }
         }
     }
+    // 更新分类的排序
+    fun updateCategoryPosition(){
+        onUpdateCPListener(categoryWithEventInfList)
+        Log.d("CategoryAdapterCMF", "CategoryAdapterCMF")
+    }
+    fun setOnUpdateCPListener(listener: (List<CategoryWithEventInf>) -> Unit){
+        onUpdateCPListener = listener
+    }
+
+
+
+    private var lastMoveTime = 0L
+    fun onItemSwap(position1: Int, position2: Int) {
+        // 交换list中两项目的位置
+        Collections.swap(categoryWithEventInfList, position1, position2)
+        // 更新视图
+        notifyItemMoved(position1,position2)
+        // 定时1s后更新数据库
+        lastMoveTime = System.currentTimeMillis()
+        Timer().schedule(
+            object:TimerTask(){
+                val startTime = lastMoveTime
+                override fun run() {
+                    if (startTime == lastMoveTime) {
+                        updateCategoryPosition()
+                    }
+                }
+            }
+            , 1000
+        )
+    }
 
     fun onItemSwiped(position: Int, direction:Int) {
         if (direction == ItemTouchHelper.LEFT){ // 左滑
             onSwipedListener(categoryWithEventInfList[position].category, position)
-            Log.d("CategoryAdapterCMF", "onItemSwipedLEFT: $position, $direction")
+//            Log.d("CategoryAdapterCMF", "onItemSwipedLEFT: $position, $direction")
         }
         else if (direction == ItemTouchHelper.RIGHT){ // 右滑
             swipeSelectCategory(categoryWithEventInfList[position].category, position)
-            Log.d("CategoryAdapterCMF", "onItemSwipedRIGHT: $position, $direction")
+//            Log.d("CategoryAdapterCMF", "onItemSwipedRIGHT: $position, $direction")
         }
     }
 
     private fun updateItemsBackground(itemView: View, level: Float, color: Int, selected: Boolean){
 //        Log.d("CategoryAdapterCMF", "updateItemsBackground: view: $itemView, level: $level, color: $color")
-        Log.d("CategoryAdapterCMF", "update Background start")
+//        Log.d("CategoryAdapterCMF", "update Background start")
         itemView.apply{
             val levelWidth = (width * level * 0.85).toInt()
 
@@ -243,12 +276,12 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
             val drawableBackground = backgroundDrawable.findIndexByLayerId(R.id.background)
             val drawableBackgroundDrawable = backgroundDrawable.getDrawable(drawableBackground) as GradientDrawable
             if (workMode == WorkMode.SELECT && selected){ // 选中模式下需要修改背景颜色
-                Log.d("CategoryAdapterCMF", "update Background selected:${selected}")
+//                Log.d("CategoryAdapterCMF", "update Background selected:${selected}")
                 val backgroundColor = R.color.blue_42eeff
                 drawableBackgroundDrawable.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(context,
                     backgroundColor), PorterDuff.Mode.SRC)
             }else{// 非选中模式下背景颜色为透明
-                Log.d("CategoryAdapterCMF", "update Background selected:${selected}")
+//                Log.d("CategoryAdapterCMF", "update Background selected:${selected}")
                 val backgroundColor = R.color.transparent
                 drawableBackgroundDrawable.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(context,backgroundColor),
                     PorterDuff.Mode.SRC)
@@ -259,6 +292,6 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
             invalidate() // 刷新视图
 //            Log.d("CategoryAdapterCMF", "updateItemsBackground finish levelWidth: $level, $levelWidth")
         }
-        Log.d("CategoryAdapterCMF", "update Background end")
+//        Log.d("CategoryAdapterCMF", "update Background end")
     }
 }

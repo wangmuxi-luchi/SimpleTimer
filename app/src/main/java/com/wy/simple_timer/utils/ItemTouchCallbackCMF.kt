@@ -16,8 +16,9 @@ class ItemTouchCallbackCMF(private val adapter: CategoryAdapterCMF): ItemTouchHe
         target: RecyclerView.ViewHolder
     ): Boolean {
         Log.d("ItemTouchCallback", "onMove")
-        adapter.collectionsSwap(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
-        adapter.notifyItemMoved(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
+//        adapter.collectionsSwap(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
+//        adapter.notifyItemMoved(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
+        adapter.onItemSwap(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
         return true
     }
 

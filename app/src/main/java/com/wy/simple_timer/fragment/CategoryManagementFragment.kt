@@ -190,8 +190,7 @@ class CategoryManagementFragment : Fragment() {
             }
             
             setOnBindViewHolder { categoryWithEventInf, position ->
-                // 在这里更新 position
-                // TODO: 修改category排序的功能有待实现，拖动时不会重新调用 onBindViewHolder，所以在这里更新position无效，而且每次调用 onBindViewHolder都要检测一次过于繁琐，没有必要。需要在onItemMovedListener中更新或者找其他实现逻辑
+                // 最开始的版本中在这里更新 position,现在这个功能已经在其他位置实现了
 //                Log.d("CategoryManagementFragment", "category position update:" +
 //                        "categoryname: ${categoryWithEventInf.category.categoryName}; oldposition: ${categoryWithEventInf.category.position} position:${position}")
 //                categoryWithEventInf.apply {
@@ -200,6 +199,18 @@ class CategoryManagementFragment : Fragment() {
 //                        viewModel.updateCategory(category)
 //                    }
 //                }
+            }
+            setOnUpdateCPListener { categoryWithEventInfList ->
+                categoryWithEventInfList.withIndex().forEach{ (position, categoryWithEventInf) ->
+                    categoryWithEventInf.apply {
+                        if (position != category.position) {
+                            Log.d("CategoryManagementFragment", "category position update:" +
+                                    "categoryname: ${categoryWithEventInf.category.categoryName}; oldposition: ${categoryWithEventInf.category.position} position:${position}")
+                            category.position = position
+                            viewModel.updateCategory(category)
+                        }
+                    }
+                }
             }
             // 调用adapter的函数来实现类型选中判断
             listenerIsCategorySelected = { categoryID ->
