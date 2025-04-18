@@ -53,6 +53,7 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
     inner class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val colorDot: ImageView = itemView.findViewById(R.id.color_dot)
         private val categoryText: TextView = itemView.findViewById(R.id.category_name)
+        private val categoryDuration: TextView = itemView.findViewById(R.id.total_duration)
 //        private val lock = Any()
         fun bind(position: Int) {
 //            Log.d("CategoryAdapterCMF", "bind start")
@@ -61,6 +62,22 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
             val color = Color.parseColor(categoryWithEventInf.category.categoryColor)
             colorDot.setColorFilter(color)
             categoryText.text = categoryWithEventInf.category.categoryName
+            // 计算活动持续时间
+            val hours = categoryWithEventInf.totalDuration / (1000 * 60 * 60)
+            val minutes = (categoryWithEventInf.totalDuration % (1000 * 60 * 60)) / (1000 * 60)
+            try {
+                categoryDuration.text = if (hours > 0) {
+                    String.format("%2d小时%02d分钟", hours, minutes)
+                } else if (minutes > 0){
+                    String.format("%2d分钟", minutes)
+                }else{
+                    String.format("")
+                }
+            } catch (e: Exception) {
+                Log.e("EventAdapter", "Error calculating duration", e)
+                categoryDuration.text = "时间格式错误"
+            }
+
             // TODO: 当点击取消选中的按钮时取消选中
             itemView.setOnClickListener {
                 if (getWorkMode() == WorkMode.NORMAL){
