@@ -19,19 +19,32 @@
     <!-- 分类名称 -->
     <TextView
         android:id="@+id/category_name"
-        android:layout_width="0dp"
+        android:layout_width="60dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginStart="16dp"
-        android:textSize="14sp"/>
+        android:layout_marginStart="10dp"
+        android:textSize="14sp"
+        android:singleLine="true"
+        />
 
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1"/>
+
+    <!-- 总时长 -->
+    <TextView
+        android:id="@+id/total_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:textSize="11sp"/>
     <!-- 右侧箭头 -->
-    <ImageView
-        android:id="@+id/arrow"
-        android:layout_width="15dp"
-        android:layout_height="15dp"
-        android:layout_gravity="center_vertical"
-        android:src="@drawable/ic_arrow_right"
-        tools:ignore="ContentDescription" />
+<!--    <ImageView-->
+<!--        android:id="@+id/arrow"-->
+<!--        android:layout_width="15dp"-->
+<!--        android:layout_height="15dp"-->
+<!--        android:layout_gravity="center_vertical"-->
+<!--        android:src="@drawable/ic_arrow_right"-->
+<!--        tools:ignore="ContentDescription" />-->
 
 </LinearLayout>
