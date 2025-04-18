@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import java.util.Calendar
 
-// 分类和事件的组合，使用方法：先调用setDateMode设置需要的数据范围，再调用get_Categories
+// 分类和事件两个流组合输出一个包含时间信息的流，CategoryWithEventInf，使用方法：先调用setDateMode设置需要的数据范围，再调用get_Categories获取输出Flow
 class CategoryWEIViewModel(application: Application): AndroidViewModel(application), CategoryViewModelDaoHelper<Application>, EventViewModelDaoHelper<Application> {
     private var _categories: Flow<List<CategoryWithEventInf>> = emptyFlow()
     private var events: Flow<List<Event>> = emptyFlow()
