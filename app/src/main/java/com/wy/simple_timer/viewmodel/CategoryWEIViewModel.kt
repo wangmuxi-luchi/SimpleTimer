@@ -107,11 +107,11 @@ class CategoryWEIViewModel(application: Application): AndroidViewModel(applicati
             var totalDays = 0
             var nowday = Calendar.getInstance().apply {  timeInMillis = 0L }
             for (event in eventsOfCategory) {
-                if (!nowday.isEarlierDay(event.startTime)) {
+                if (nowday.isLaterDay(event.startTime)) {
                     totalDays += 1
                     nowday = event.startTime
                 }
-                if (!nowday.isEarlierDay(event.endTime)) {
+                if (nowday.isLaterDay(event.endTime)) {
                     totalDays += 1
                     nowday = event.endTime
                 }
@@ -136,9 +136,15 @@ class CategoryWEIViewModel(application: Application): AndroidViewModel(applicati
 }
 
 fun Calendar.isEarlierDay(calendar: Calendar): Boolean {
-    return this.timeInMillis < calendar.timeInMillis &&
-            (this.get(Calendar.YEAR) <= calendar.get(Calendar.YEAR) ||
-            this.get(Calendar.DAY_OF_YEAR) <= calendar.get(Calendar.DAY_OF_YEAR) )
+    return this.get(Calendar.YEAR) > calendar.get(Calendar.YEAR) ||
+                this.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
+                this.get(Calendar.DAY_OF_YEAR) > calendar.get(Calendar.DAY_OF_YEAR)
+
+}
+fun Calendar.isLaterDay(calendar: Calendar): Boolean {
+    return this.get(Calendar.YEAR) < calendar.get(Calendar.YEAR) ||
+                    this.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
+                    this.get(Calendar.DAY_OF_YEAR) < calendar.get(Calendar.DAY_OF_YEAR)
 
 }
 

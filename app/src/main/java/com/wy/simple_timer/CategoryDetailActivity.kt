@@ -21,6 +21,7 @@ import com.wy.simple_timer.viewmodel.EventViewModel
 import com.wy.simple_timer.database.MyDatabase
 import com.wy.simple_timer.databinding.ActivityCategoryDetailBinding
 import com.wy.simple_timer.viewmodel.isEarlierDay
+import com.wy.simple_timer.viewmodel.isLaterDay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -104,11 +105,11 @@ class CategoryDetailActivity : AppCompatActivity() {
                 var totalDays = 0
                 var nowday = Calendar.getInstance().apply {  timeInMillis = 0L }
                 for (event in events) {
-                    if (!nowday.isEarlierDay(event.startTime)) {
+                    if (nowday.isLaterDay(event.startTime)) {
                         totalDays += 1
                         nowday = event.startTime
                     }
-                    if (!nowday.isEarlierDay(event.endTime)) {
+                    if (nowday.isLaterDay(event.endTime)) {
                         totalDays += 1
                         nowday = event.endTime
                     }
