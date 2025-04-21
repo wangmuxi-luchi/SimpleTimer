@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/background">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/transparent"/>
+        </shape>
+    </item>
+    <item
+        android:id="@+id/color_level_bar"
+        android:gravity="start"
+        android:width="50dp">
+        <shape
+            android:shape="rectangle"
+            >
+            <solid android:color="#57965c"/>
+        </shape>
+    </item>
+
+</layer-list>

@@ -144,7 +144,7 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
 
             // 更新背景的宽度
             val backgroundDrawable = ContextCompat.getDrawable(context,
-                R.drawable.background_item_main) as LayerDrawable
+                R.drawable.background_item_event) as LayerDrawable
 
             val colorBackgroundIndex = backgroundDrawable.findIndexByLayerId(R.id.color_level_bar)
             val colorBackgroundDrawable = backgroundDrawable.getDrawable(colorBackgroundIndex) as GradientDrawable

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -16,41 +16,17 @@
 <!--        android:src="@drawable/color_dot"-->
 <!--        tools:ignore="ContentDescription" />-->
     <LinearLayout
-        android:layout_width="30dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="center">
-        <TextView
-            android:id="@+id/month"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/example_month_10"
-            android:textSize="11sp"
-            android:textColor="#000000"
-            android:layout_gravity="center"
-            android:layout_marginStart="1dp" />
-        <TextView
-            android:id="@+id/date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/example_date_21"
-            android:textSize="11sp"
-            android:textColor="#000000"
-            android:layout_gravity="center"
-            android:layout_marginStart="1dp" />
-    </LinearLayout>
-    <LinearLayout
         android:id="@+id/level_background"
-        android:layout_width="match_parent"
+        android:layout_toStartOf="@+id/liner_layout_date"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingHorizontal="8dp"
         android:paddingVertical="4dp"
         android:orientation="horizontal">
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:orientation="vertical"
             android:layout_gravity="center_vertical">
             <TextView
@@ -71,6 +47,10 @@
                 android:layout_marginStart="0dp" />
         </LinearLayout>
 
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"/>
 
         <TextView
             android:id="@+id/activity"
@@ -79,10 +59,34 @@
             android:text="@string/ExampleCategory"
             android:textSize="11sp"
             android:textColor="#000000"
-            android:layout_marginStart="0dp"
             android:layout_gravity="center_vertical"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/liner_layout_date"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginHorizontal="8dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true">
+        <TextView
+            android:id="@+id/month"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/example_month_10"
+            android:textSize="11sp"
+            android:textColor="#000000"
+            android:layout_gravity="center"/>
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/example_date_21"
+            android:textSize="11sp"
+            android:textColor="#000000"
+            android:layout_gravity="center"/>
+    </LinearLayout>
 <!--    <ImageView-->
 <!--        android:id="@+id/arrow"-->
 <!--        android:layout_width="wrap_content"-->
@@ -91,4 +95,4 @@
 <!--        android:src="@drawable/ic_arrow_right"-->
 <!--        tools:ignore="ContentDescription" />-->
 
-</LinearLayout>
+</RelativeLayout>
