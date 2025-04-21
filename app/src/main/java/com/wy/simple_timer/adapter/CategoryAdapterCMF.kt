@@ -278,7 +278,7 @@ class CategoryAdapterCMF :ListAdapter<CategoryWithEventInf, CategoryAdapterCMF.C
 
             // 更新背景的宽度
             val backgroundDrawable = ContextCompat.getDrawable(context,
-                R.drawable.background_item_main) as LayerDrawable
+                R.drawable.background_item_category) as LayerDrawable
 
             val colorLevelBar = backgroundDrawable.findIndexByLayerId(R.id.color_level_bar)
             val colorLevalBarDrawable = backgroundDrawable.getDrawable(colorLevelBar) as GradientDrawable
