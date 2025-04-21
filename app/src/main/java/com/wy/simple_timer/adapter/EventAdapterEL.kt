@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -57,17 +58,32 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
         private val timeTextView: TextView = itemView.findViewById(R.id.time)
         private val activityTextView: TextView = itemView.findViewById(R.id.activity)
         private val durationTextView: TextView = itemView.findViewById(R.id.duration)
-        private val colorDotImageView: ImageView = itemView.findViewById(R.id.color_dot)
+//        private val colorDotImageView: ImageView = itemView.findViewById(R.id.color_dot)
+        private val monthTextView: TextView = itemView.findViewById(R.id.month)
+        private val dateTextView: TextView = itemView.findViewById(R.id.date)
+        private val levelBackground: LinearLayout = itemView.findViewById(R.id.level_background)
         fun bind(_event: _Event, payloads: MutableList<Any> = mutableListOf()) {
             val event = _event.event
             itemView.setOnClickListener {
                 onItemClickListener(event.id)
             }
             // 定义时间格式化器
+            val monthFormat = SimpleDateFormat("MM", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("dd", Locale.getDefault())
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             // 格式化开始时间和结束时间
+            val startMonthFormatted = monthFormat.format(event.startTime.time)
+            val startDateFormatted = dateFormat.format(event.startTime.time)
             val startTimeFormatted = timeFormat.format(event.startTime.time)
             val endTimeFormatted = timeFormat.format(event.endTime.time)
+            // 设置日期
+//            colorDotImageView.setColorFilter(_event.categoryColor)
+            monthTextView.setTextColor(_event.categoryColor)
+            dateTextView.setTextColor(_event.categoryColor)
+            monthTextView.text =
+                    context.getString(R.string.month_format,startMonthFormatted)
+            dateTextView.text =
+                context.getString(R.string.date_format,startDateFormatted)
             // 设置时间
             timeTextView.text =
                 context.getString(R.string.time_range, startTimeFormatted, endTimeFormatted)
@@ -84,10 +100,10 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
                 Log.e("EventAdapter", "Error calculating duration", e)
                 durationTextView.text = "时间格式错误"
             }
-            colorDotImageView.setColorFilter(_event.categoryColor)
+//            colorDotImageView.setColorFilter(_event.categoryColor)
             // 更新背景的宽度
             itemView.post {
-                updateItemsBackground(itemView, _event.level, _event.categoryColor)
+                updateItemsBackground(levelBackground, _event.level, _event.categoryColor)
             }
             activityTextView.text = _event.categoryName
         }
@@ -124,7 +140,7 @@ class EventAdapterEL(private val context: AppCompatActivity) : ListAdapter<_Even
 
     private fun updateItemsBackground(itemView: View, level: Float, color: Int){
         itemView.apply{
-            val levelWidth = (width * level * 0.85).toInt()
+            val levelWidth = (width * level).toInt()
 
             // 更新背景的宽度
             val backgroundDrawable = ContextCompat.getDrawable(context,
