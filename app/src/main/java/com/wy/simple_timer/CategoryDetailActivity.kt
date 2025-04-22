@@ -168,23 +168,25 @@ class CategoryDetailActivity : AppCompatActivity() {
     }
 
     private fun archiveCategory() {
-        lifecycleScope.launch {
-            val category = categoryDao.getCategoryById(categoryID).firstOrNull()
-            val newcategory = category?.let {
-                Category(
-                    it.id,
-                    it.categoryName,
-                    it.categoryColor,
-                    it.position,
-                    true,
-                    it.parentId
-                )
-            }
-            val updateCategoryIntent = Intent(this@CategoryDetailActivity, DatabaseManagementService::class.java).apply {
-                action = "UPDATE_CATEGORY"
-                putExtra("object", newcategory) // Category 对象
-            }
-            startService(updateCategoryIntent)
-        }
+        // TODO: 实现归档逻辑
+        Toast.makeText(this, "归档功能修复中", Toast.LENGTH_SHORT).show()
+        // lifecycleScope.launch {
+        //     val category = categoryDao.getCategoryById(categoryID).firstOrNull()
+        //     val newcategory = category?.let {
+        //         Category(
+        //             it.id,
+        //             it.categoryName,
+        //             it.categoryColor,
+        //             it.position,
+        //             true,
+        //             it.parentId
+        //         )
+        //     }
+        //     val updateCategoryIntent = Intent(this@CategoryDetailActivity, DatabaseManagementService::class.java).apply {
+        //         action = "UPDATE_CATEGORY"
+        //         putExtra("object", newcategory) // Category 对象
+        //     }
+        //     startService(updateCategoryIntent)
+        // }
     }
 }
