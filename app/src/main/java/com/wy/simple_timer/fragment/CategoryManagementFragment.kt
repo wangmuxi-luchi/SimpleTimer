@@ -40,10 +40,11 @@ class CategoryManagementFragment : Fragment() {
     private lateinit var categoryAdapter: CategoryAdapterCMF
 
     //    private lateinit var onCreatedListener: () -> Unit
-//    private lateinit var onBlankClickListener: () -> Unit
+    //    private lateinit var onBlankClickListener: () -> Unit
     private lateinit var categotyWithEventInfMutableStateFlow: MutableStateFlow<Flow<List<CategoryWithEventInf>>>
     private var startCalendar: Calendar = Calendar.getInstance()
     private var endCalendar: Calendar = Calendar.getInstance()
+    private var showArchived = false // 当前显示状态：false=未归档，true=已归档
 
 
 //    fun setOnBlankClickListener(listener: () -> Unit) {
@@ -120,24 +121,6 @@ class CategoryManagementFragment : Fragment() {
         startCalendar = start
         endCalendar = end
         refreshCategoryWithEventInf()
-    }
-
-    private fun refreshCategoryWithEventInf() {
-        startCalendar.resetToStartOfPeriod(Calendar.DAY_OF_MONTH)
-        endCalendar.resetToStartOfPeriod(Calendar.DAY_OF_MONTH)
-        endCalendar.add(Calendar.DAY_OF_MONTH, 1)
-        endCalendar.add(Calendar.MILLISECOND, -1)
-
-        viewModel.setDateMode(
-            CategoryWEIViewModel.DATA_MODE_ALL_UNARCHIVED,
-            startCalendar,
-            endCalendar
-        )
-        categotyWithEventInfMutableStateFlow.value = viewModel.get_Categories()
-        Log.d(
-            "CategoryManagementFragment",
-            "refreshCategory: startCalendar: ${startCalendar.time} endCalendar: ${endCalendar.time}"
-        )
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -289,4 +272,41 @@ class CategoryManagementFragment : Fragment() {
     // adapter对外接口,将adapter的功能暴露给外界
     var isCategorySelected: (Long) -> Boolean = { _ -> true } // 用于传递分类选择状态的回调函数,由分类管理fragment负责处理
     var unSelectAllCategory: () -> Unit = {}
+
+    // 切换归档状态
+    fun toggleArchiveStatus(): Boolean {
+        showArchived = !showArchived
+        refreshCategoryWithEventInf()
+        return showArchived
+    }
+
+    // 获取当前归档状态
+    fun getShowArchived(): Boolean {
+        return showArchived
+    }
+
+    // 更新刷新方法，根据当前状态显示归档或未归档分类
+    private fun refreshCategoryWithEventInf() {
+        startCalendar.resetToStartOfPeriod(Calendar.DAY_OF_MONTH)
+        endCalendar.resetToStartOfPeriod(Calendar.DAY_OF_MONTH)
+        endCalendar.add(Calendar.DAY_OF_MONTH, 1)
+        endCalendar.add(Calendar.MILLISECOND, -1)
+
+        val dataMode = if (showArchived) {
+            CategoryWEIViewModel.DATA_MODE_ALL_ARCHIVED
+        } else {
+            CategoryWEIViewModel.DATA_MODE_ALL_UNARCHIVED
+        }
+
+        viewModel.setDateMode(
+            dataMode,
+            startCalendar,
+            endCalendar
+        )
+        categotyWithEventInfMutableStateFlow.value = viewModel.get_Categories()
+        Log.d(
+            "CategoryManagementFragment",
+            "refreshCategory: startCalendar: ${startCalendar.time} endCalendar: ${endCalendar.time} showArchived: $showArchived"
+        )
+    }
 }

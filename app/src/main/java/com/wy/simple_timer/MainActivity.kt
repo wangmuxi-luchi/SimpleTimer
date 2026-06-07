@@ -10,21 +10,24 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
 import android.util.Log
+import android.view.Gravity
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.navigation.NavigationView
 import com.wy.simple_timer.viewmodel.EventViewModel
 import com.wy.simple_timer.database.MyDatabase
 import com.wy.simple_timer.databinding.ActivityMainBinding
 import com.wy.simple_timer.fragment.EventListFragment // 假设你有这个 Fragment
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-
 
 // 在文件顶部新增导入
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -42,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     private var selectedFragment = 2 // 1 表示事件列表，2 表示分类管理
     private lateinit var eventListFragment: EventListFragment
     private lateinit var categoryManagementFragment: CategoryManagementFragment
+    private lateinit var drawerLayout: DrawerLayout
 
 
 
@@ -92,6 +96,7 @@ class MainActivity : AppCompatActivity() {
         loadCategoryManagementFragment() // 加载分类管理
         setupTimeRange()
         setupListeners()
+        setupDrawerLayout()
 
         // 监听日期变化
 //        val intentFilter = android.content.IntentFilter()
@@ -178,9 +183,9 @@ class MainActivity : AppCompatActivity() {
     private fun setupListeners() {
         binding.openRecordActivityButton.setOnClickListener { launchTimeRecordActivity() }
 //        binding.openCategoryManagementButton.setOnClickListener { launchCategoryManagementActivity() }
-        binding.BackupDataButton.setOnClickListener { backupData() }
-        binding.RestoreDataButton.setOnClickListener { restoreData() }
         binding.addCategoryButton.setOnClickListener{ onAddCategoryButtonClick() }
+        binding.menuButton.setOnClickListener { openDrawer() }
+        binding.statusButton.setOnClickListener { toggleArchiveStatus() }
 
         setupCMFFunctions()
         eventListFragment.setOnClickListener { onFragmentClickListener(1) }
@@ -188,6 +193,57 @@ class MainActivity : AppCompatActivity() {
             categoryManagementFragment.isCategorySelected(categoryId) }
         categoryManagementFragment.setOnSCCListener { eventListFragment.onSCC() }
     }
+
+    private fun setupDrawerLayout() {
+        drawerLayout = binding.drawerLayout
+        val navView: NavigationView = binding.navView
+
+        navView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_home -> {
+                    Toast.makeText(this, "首页", Toast.LENGTH_SHORT).show()
+                }
+                // R.id.nav_categories -> {
+                //     Toast.makeText(this, "分类管理", Toast.LENGTH_SHORT).show()
+                // }
+                R.id.nav_backup -> {
+                    backupData()
+                }
+                R.id.nav_restore -> {
+                    restoreData()
+                }
+                // R.id.nav_settings -> {
+                //     Toast.makeText(this, "功能开发", Toast.LENGTH_SHORT).show()
+                // }
+            }
+            drawerLayout.closeDrawer(GravityCompat.START)
+            true
+        }
+    }
+
+    private fun openDrawer() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
+    }
+
+    // 用于 GravityCompat.START 的兼容性支持
+    private object GravityCompat {
+        const val START = Gravity.START
+    }
+
+    // 切换归档状态
+    private fun toggleArchiveStatus() {
+        val isArchived = categoryManagementFragment.toggleArchiveStatus()
+        binding.statusButton.text = if (isArchived) {
+            getString(R.string.status_archived)
+        } else {
+            getString(R.string.status_active)
+        }
+    }
+
     private fun setupCMFFunctions(){
         categoryManagementFragment.apply {
             // 回调函数实现

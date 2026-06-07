@@ -20,6 +20,7 @@ import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.CategoryDao
 import com.wy.simple_timer.database.Event
 import com.wy.simple_timer.database.EventDao
+import com.wy.simple_timer.database.DATABASE_VERSION
 import com.wy.simple_timer.database.MyDatabase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -266,6 +267,7 @@ class DatabaseManagementService : LifecycleService() {
 
     // 添加数据模型
     data class BackupData(
+        val version: Int = DATABASE_VERSION,
         val categories: List<Category>,
         val events: List<Event>
     )
