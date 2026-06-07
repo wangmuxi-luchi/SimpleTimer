@@ -74,6 +74,12 @@ class CategoryDetailActivity : AppCompatActivity() {
                     cdBinding.btnEdit.setOnClickListener {
                         showEditCategoryDialog()
                     }
+                    // 根据归档状态设置按钮文字
+                    cdBinding.btnArchive.text = if (category.archived) {
+                        "取消归档"
+                    } else {
+                        "归档"
+                    }
                     // 为归档按钮添加点击事件监听器
                     cdBinding.btnArchive.setOnClickListener {
                         archiveCategory()
@@ -168,25 +174,27 @@ class CategoryDetailActivity : AppCompatActivity() {
     }
 
     private fun archiveCategory() {
-        // TODO: 实现归档逻辑
-        Toast.makeText(this, "归档功能修复中", Toast.LENGTH_SHORT).show()
-        // lifecycleScope.launch {
-        //     val category = categoryDao.getCategoryById(categoryID).firstOrNull()
-        //     val newcategory = category?.let {
-        //         Category(
-        //             it.id,
-        //             it.categoryName,
-        //             it.categoryColor,
-        //             it.position,
-        //             true,
-        //             it.parentId
-        //         )
-        //     }
-        //     val updateCategoryIntent = Intent(this@CategoryDetailActivity, DatabaseManagementService::class.java).apply {
-        //         action = "UPDATE_CATEGORY"
-        //         putExtra("object", newcategory) // Category 对象
-        //     }
-        //     startService(updateCategoryIntent)
-        // }
+        lifecycleScope.launch {
+            val category = categoryDao.getCategoryById(categoryID).firstOrNull()
+            category?.let {
+                val newCategory = Category(
+                    it.id,
+                    it.categoryName,
+                    it.categoryColor,
+                    it.position,
+                    !it.archived, // 切换归档状态
+                    it.parentId
+                )
+                val updateCategoryIntent = Intent(this@CategoryDetailActivity, DatabaseManagementService::class.java).apply {
+                    action = "UPDATE_CATEGORY"
+                    putExtra("object", newCategory)
+                }
+                startService(updateCategoryIntent)
+                
+                val status = if (newCategory.archived) "已归档" else "已恢复"
+                Toast.makeText(this@CategoryDetailActivity, "分类$status", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
     }
 }

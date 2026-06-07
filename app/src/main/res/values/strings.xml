@@ -39,5 +39,14 @@
     <string name="addCategory">添加分类</string>
     <string name="example_date_21">21日</string>
     <string name="example_month_10">10月</string>
+    <string name="menu">菜单</string>
+    <string name="timer_description">时间管理助手</string>
+    <string name="nav_home">首页</string>
+    <string name="nav_categories">分类管理</string>
+    <string name="nav_backup">数据备份</string>
+    <string name="nav_restore">恢复数据</string>
+    <string name="nav_settings">设置</string>
+    <string name="status_active">活跃中</string>
+    <string name="status_archived">已归档</string>
 
 </resources>

@@ -24,7 +24,15 @@ class ItemTouchCallbackCMF(private val adapter: CategoryAdapterCMF): ItemTouchHe
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
         Log.d("ItemTouchCallback", "onSwiped")
-//        adapter.notifyItemChanged(viewHolder.bindingAdapterPosition)
+        // 直接将视图滑回原位，使用平滑动画
+        viewHolder.itemView.animate()
+            .translationX(0f)           // 回正X坐标
+            .alpha(1f)                   // 恢复透明度
+            .setDuration(300)            // 动画时长300ms
+            .start()
+        
+        
+        // 触发滑动业务逻辑（左滑记录、右滑多选）
         adapter.onItemSwiped(viewHolder.bindingAdapterPosition, direction)
 
         Log.d("ItemTouchCallback", "onSwiped:$(viewHolder.bindingAdapterPosition)")
