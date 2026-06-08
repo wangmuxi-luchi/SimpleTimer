@@ -3,10 +3,14 @@ name: Build & Publish Release APK
 on:
   workflow_dispatch:
     inputs:
-      tags:
-        description: 'Test scenario tags'
-        required: false
-        type: string
+      release_type:
+        description: 'Release type: "test" for testing, "official" for formal release'
+        required: true
+        type: choice
+        options:
+          - test
+          - official
+        default: test
   push:
     tags:
       - '*'
@@ -16,19 +20,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: checkout code
-      uses: actions/checkout@v2
-    - name: setup jdk
-      uses: actions/setup-java@v2
+      uses: actions/checkout@v6
+    - name: Cache Gradle
+      uses: actions/cache@v4
       with:
-        distribution: 'zulu'
+        path: |
+          ~/.gradle/wrapper
+          ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    - name: setup jdk
+      uses: actions/setup-java@v5.2.0
+      with:
+        distribution: 'temurin'
         java-version: '17'
-        java-package: jdk # optional (jdk or jre) - defaults to jdk
+        java-package: jdk
     - name: Make Gradle executable
       run: chmod +x ./gradlew
-    - name: Build Release APK
+    - name: Decode Keystore
+      run: |
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > ${{ runner.temp }}/keystore.jks
+    - name: Build APK
       run: ./gradlew assembleRelease --stacktrace
-    - name: Releasing using Hub
-      uses:  wangmuxi-luchi/release-apk@main
       env:
-       GITHUB_TOKEN: ${{ secrets.TOKEN }}
-       APP_FOLDER: app
+        KEYSTORE_PATH: ${{ runner.temp }}/keystore.jks
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+    - name: Releasing using Hub
+      uses: wangmuxi-luchi/release-apk@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        APP_FOLDER: app
+        TRIGGER_TYPE: ${{ github.event_name }}_${{ github.event.inputs.release_type || 'official' }}

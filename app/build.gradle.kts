@@ -22,24 +22,41 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    val isCI = System.getenv("GITHUB_ACTIONS") == "true"
+
     signingConfigs {
-        create("packJKS"){
-            keyAlias = "key" // 别名
-            keyPassword = "APpassword" // 密码
-            storeFile = file("${rootDir.absolutePath}/keystore/key.jks") // 存储keystore或者是jks文件的路径
-            storePassword = "APpassword" // 存储密码
+        create("packJKS") {
+            if (isCI) {
+                val keystorePath = System.getenv("KEYSTORE_PATH")
+                if (keystorePath != null && file(keystorePath).exists()) {
+                    storeFile = file(keystorePath)
+                    storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+                    keyAlias = System.getenv("KEY_ALIAS") ?: ""
+                    keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+                } else {
+                    throw GradleException("CI环境缺少签名配置: 请检查 KEYSTORE_PATH 环境变量")
+                }
+            } else {
+                storeFile = file("${rootDir.absolutePath}/keystore/dummy.jks")
+                storePassword = "dummypassword"
+                keyAlias = "dummy"
+                keyPassword = "dummypassword"
+            }
         }
     }
 
     buildTypes {
-        val mySignConfig = signingConfigs.getByName("packJKS")
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = mySignConfig
+            signingConfig = if (isCI) {
+                signingConfigs.getByName("packJKS")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
         debug {
             isMinifyEnabled = false
@@ -47,8 +64,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // 配置debug的签名信息
-            signingConfig = mySignConfig
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
