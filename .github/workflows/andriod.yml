@@ -36,7 +36,7 @@ jobs:
       run: |
         echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > ${{ runner.temp }}/keystore.jks
     - name: Build APK
-      run: ./gradlew assemble${{ github.event.inputs.release_type == 'release' || github.event_name == 'push' ? 'Release' : 'Debug' }} --stacktrace
+      run: ./gradlew assembleRelease --stacktrace
       env:
         KEYSTORE_PATH: ${{ runner.temp }}/keystore.jks
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -48,3 +48,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
         APP_FOLDER: app
         RELEASE_SUFFIX: ${{ github.event.inputs.release_type || 'release' }}
+        TRIGGER_TYPE: ${{ github.event_name }}
