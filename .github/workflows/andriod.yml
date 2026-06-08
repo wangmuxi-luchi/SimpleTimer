@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       release_type:
-        description: 'Release type: "debug" for testing, "release" for official'
+        description: 'Release type: "test" for testing, "official" for formal release'
         required: true
         type: choice
         options:
-          - debug
-          - release
-        default: debug
+          - test
+          - official
+        default: test
   push:
     tags:
       - '*'
@@ -47,5 +47,4 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
         APP_FOLDER: app
-        RELEASE_SUFFIX: ${{ github.event.inputs.release_type || 'release' }}
-        TRIGGER_TYPE: ${{ github.event_name }}
+        TRIGGER_TYPE: ${{ github.event_name }}_${{ github.event.inputs.release_type || 'official' }}
