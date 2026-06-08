@@ -3,13 +3,20 @@ name: Build & Publish Release APK
 on:
   workflow_dispatch:
     inputs:
-      tags:
-        description: 'Test scenario tags'
-        required: false
-        type: string
+      release_type:
+        description: 'Release type: "debug" for testing, "release" for official'
+        required: true
+        type: choice
+        options:
+          - debug
+          - release
+        default: debug
   push:
     tags:
       - '*'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   Gradle:
@@ -28,15 +35,16 @@ jobs:
     - name: Decode Keystore
       run: |
         echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > ${{ runner.temp }}/keystore.jks
-    - name: Build Release APK
-      run: ./gradlew assembleRelease --stacktrace
+    - name: Build APK
+      run: ./gradlew assemble${{ github.event.inputs.release_type == 'release' || github.event_name == 'push' ? 'Release' : 'Debug' }} --stacktrace
       env:
         KEYSTORE_PATH: ${{ runner.temp }}/keystore.jks
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     - name: Releasing using Hub
-      uses:  wangmuxi-luchi/release-apk@main
+      uses: wangmuxi-luchi/release-apk@main
       env:
-       GITHUB_TOKEN: ${{ secrets.TOKEN }}
-       APP_FOLDER: app
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        APP_FOLDER: app
+        RELEASE_SUFFIX: ${{ github.event.inputs.release_type || 'release' }}
