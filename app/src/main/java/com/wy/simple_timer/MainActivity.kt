@@ -20,7 +20,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.navigation.NavigationView
 import com.wy.simple_timer.viewmodel.EventViewModel
 import com.wy.simple_timer.database.MyDatabase
@@ -140,10 +142,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupTimeRange() {
         binding.dateRangeTextView.setOnTimeTextChangedListener { start, end ->
-            // 在这里处理时间范围的变化
-            // 例如，更新事件列表
-            eventListFragment.setTimeRange(start, end)
-            categoryManagementFragment.setTimeRange(start, end)
+            // 更新全局状态，Fragment 自动响应
+            (application as SimpleTimerApplication).categorySelectionState.setTimeRange(start, end)
         }
     }
 
@@ -182,16 +182,13 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setupListeners() {
         binding.openRecordActivityButton.setOnClickListener { launchTimeRecordActivity() }
-//        binding.openCategoryManagementButton.setOnClickListener { launchCategoryManagementActivity() }
         binding.addCategoryButton.setOnClickListener{ onAddCategoryButtonClick() }
         binding.menuButton.setOnClickListener { openDrawer() }
         binding.statusButton.setOnClickListener { toggleArchiveStatus() }
 
         setupCMFFunctions()
         eventListFragment.setOnClickListener { onFragmentClickListener(1) }
-        eventListFragment.setIsCategorySelectedListener { categoryId ->
-            categoryManagementFragment.isCategorySelected(categoryId) }
-        categoryManagementFragment.setOnSCCListener { eventListFragment.onSCC() }
+        setupStateObservers()  // 直接订阅 StateFlow
     }
 
     private fun setupDrawerLayout() {
@@ -248,11 +245,26 @@ class MainActivity : AppCompatActivity() {
         categoryManagementFragment.apply {
             // 回调函数实现
             setOnRecycleViewClickListener { onFragmentClickListener(2) }
-            setOnWorkModeChangeListener { workMode -> onCMFWorkModeChangeListener(workMode) }
+            // 工作模式变化通过 StateFlow 直接订阅，不再需要回调
 
             // 功能接口定义
             addCategoryCMF = {showAddCategoryDialog()}
-            unSelectAllCategoryCMF = {unSelectAllCategory()} // TODO
+            unSelectAllCategoryCMF = {unSelectAll()}
+        }
+    }
+
+    // 直接订阅 StateFlow，替代回调
+    private fun setupStateObservers() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                (application as SimpleTimerApplication).categorySelectionState.workMode.collect { mode ->
+                    workModeCMF = mode
+                    binding.addCategoryButton.text = when (mode) {
+                        WorkMode.NORMAL -> "添加分类"
+                        WorkMode.SELECT -> "取消选择"
+                    }
+                }
+            }
         }
     }
 

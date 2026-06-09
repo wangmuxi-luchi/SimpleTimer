@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.MyDatabase
+import com.wy.simple_timer.state.CategorySelectionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -21,6 +22,9 @@ class SimpleTimerApplication : Application() {
     private val applicationScope = CoroutineScope(Dispatchers.IO)
     private val database by lazy { MyDatabase.getDatabase(this) }
     private val isInitializedKey = booleanPreferencesKey("is_initialized")
+
+    // 全局状态管理器 - 用于 Fragment 间通信
+    val categorySelectionState = CategorySelectionState()
 
     override fun onCreate() {
         super.onCreate()

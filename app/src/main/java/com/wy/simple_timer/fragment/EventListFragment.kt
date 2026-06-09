@@ -7,9 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.wy.simple_timer.SimpleTimerApplication
 import com.wy.simple_timer.EventEditActivity
 import com.wy.simple_timer.adapter.EventAdapterEL
 import com.wy.simple_timer.database.Event
@@ -21,7 +24,7 @@ import com.wy.simple_timer.viewmodel.EventViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -30,11 +33,15 @@ class EventListFragment : Fragment() {
     private lateinit var binding: FragmentEventListBinding
     private lateinit var eventAdapterEL: EventAdapterEL
     private lateinit var eventViewModel: EventViewModel
-//    private lateinit var onCreatedListener: () -> Unit
-    private var isCategorySelectedListener: (Long) -> Boolean = { _ ->true}
+
+    // 全局状态管理器
+    private val categorySelectionState by lazy {
+        (requireContext().applicationContext as SimpleTimerApplication).categorySelectionState
+    }
+
     private var startCalendar: Calendar = Calendar.getInstance()
     private var endCalendar: Calendar = Calendar.getInstance()
-    private lateinit var eventsMutableStateFlow : MutableStateFlow<Flow<List<Event>>>
+    private lateinit var eventsMutableStateFlow: MutableStateFlow<Flow<List<Event>>>
     private var onRecycleViewClick: (View) -> Unit = {}
 
     override fun onCreateView(
@@ -51,37 +58,31 @@ class EventListFragment : Fragment() {
         setupViewModel()
         setupRecyclerView()
         observeEvents()
+        setupStateObservers()
 
         binding.eventListView.setOnClickListener(OnRecycleViewClickListener())
-//        onCreatedListener()
     }
 
-//    fun setOnCreatedListener(listener: () -> Unit) {
-//        onCreatedListener = listener
-//    }
-
-    inner class OnRecycleViewClickListener(): View.OnClickListener {
+    inner class OnRecycleViewClickListener() : View.OnClickListener {
         override fun onClick(v: View?) {
-            v?.let{
+            v?.let {
                 onRecycleViewClick(it)
             }
         }
     }
-    fun setOnClickListener(listener:(View) -> Unit) {
+
+    fun setOnClickListener(listener: (View) -> Unit) {
         onRecycleViewClick = listener
     }
-    // 检查分类是否被选中
-    fun setIsCategorySelectedListener(listener: (Long) -> Boolean) {
-        isCategorySelectedListener = listener
-    }
+
+    // 检查分类是否被选中 - 通过 StateFlow 查询
     private fun isCategorySelected(categoryId: Long): Boolean {
-        return isCategorySelectedListener(categoryId)
+        return categorySelectionState.isSelected(categoryId)
     }
 
     private fun setupViewModel() {
         eventViewModel = ViewModelProvider(this)[EventViewModel::class.java]
-
-        eventViewModel.refreshEvents { it.getEventsByDay(Calendar.getInstance().time)}
+        eventViewModel.refreshEvents { it.getEventsByDay(Calendar.getInstance().time) }
             .also { eventsMutableStateFlow = MutableStateFlow(it) }
     }
 
@@ -97,7 +98,7 @@ class EventListFragment : Fragment() {
         endCalendar.add(Calendar.DAY_OF_MONTH, 1)
         endCalendar.add(Calendar.MILLISECOND, -1)
 
-        eventViewModel.refreshEvents { it.getEventsInRange(startCalendar, endCalendar)}
+        eventViewModel.refreshEvents { it.getEventsInRange(startCalendar, endCalendar) }
             .also { eventsMutableStateFlow.value = it }
     }
 
@@ -113,23 +114,48 @@ class EventListFragment : Fragment() {
                 }
                 startActivity(intent)
             }
-            eventAdapterEL.setIsSelectedListener{categoryID -> isCategorySelected(categoryID)}
+            eventAdapterEL.setIsSelectedListener { categoryID -> isCategorySelected(categoryID) }
         }
     }
 
-    fun onSCC(){
-        refreshEvents()
+    // 观察 StateFlow 状态变化，自动刷新事件列表
+    private fun setupStateObservers() {
+        // 观察选中分类变化，自动刷新事件列表
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                categorySelectionState.selectedCategoryIds.collect { selectedIds ->
+                    Log.d("EventListFragment", "Selected categories changed: $selectedIds")
+                    refreshEvents()
+                }
+            }
+        }
+
+        // 观察时间范围变化（同时监听开始和结束时间）
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                combine(
+                    categorySelectionState.startCalendar,
+                    categorySelectionState.endCalendar
+                ) { start, end ->
+                    Pair(start, end)
+                }.collect { (start, end) ->
+                    startCalendar = start
+                    endCalendar = end
+                    refreshEvents()
+                }
+            }
+        }
     }
 
-    // 在 observeEvents() 方法中添加适配器点击监听：
+    
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeEvents() {
         viewLifecycleOwner.lifecycleScope.launch {
-            eventsMutableStateFlow.flatMapLatest {it}.collect {
+            eventsMutableStateFlow.flatMapLatest { it }.collect {
                 Log.d("EventListFragment", "observeEvents: $it")
-                eventAdapterEL.setData(it)}
+                eventAdapterEL.setData(it)
+            }
         }
     }
-
-
 }
