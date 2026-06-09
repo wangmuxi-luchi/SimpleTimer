@@ -7,59 +7,50 @@ import androidx.lifecycle.viewModelScope
 import com.wy.simple_timer.database.Category
 import com.wy.simple_timer.database.CategoryWithEventInf
 import com.wy.simple_timer.database.Event
-import com.wy.simple_timer.database.MyDatabase
-import kotlinx.coroutines.CoroutineScope
+import com.wy.simple_timer.repository.CategoryRepository
+import kotlinx.coroutines.launch
+import com.wy.simple_timer.repository.EventRepository
+import com.wy.simple_timer.repository.RepositoryProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import java.util.Calendar
 
 // 分类和事件两个流组合输出一个包含时间信息的流，CategoryWithEventInf，使用方法：先调用setDateMode设置需要的数据范围，再调用get_Categories获取输出Flow
-class CategoryWEIViewModel(application: Application): AndroidViewModel(application), CategoryViewModelDaoHelper<Application>, EventViewModelDaoHelper<Application> {
+class CategoryWEIViewModel(application: Application) : AndroidViewModel(application) {
     private var _categories: Flow<List<CategoryWithEventInf>> = emptyFlow()
     private var events: Flow<List<Event>> = emptyFlow()
-    private var categories : Flow<List<Category>> = emptyFlow()
-//    private val categoryDao = MyDatabase.getDatabase(application).categoryDao()
+    private var categories: Flow<List<Category>> = emptyFlow()
 
     private var dateMode: Int = -1
     private var startDate: Calendar = Calendar.getInstance()
     private var endDate: Calendar = Calendar.getInstance()
 
-    // 实现 EventViewModelDaoHelper 接口
-    override val eventDao = MyDatabase.getDatabase(application).eventDao()
-    // 实现 CategoryViewModelDaoHelper 接口
-    override val categoryDao = MyDatabase.getDatabase(application).categoryDao()
-    override val _viewModelScope: CoroutineScope
-        get() = viewModelScope
-
-//    init {
-//        events = eventDao.getAllEvents()
-//        refreshCategories()
-//    }
-
-//    fun get_Categories() = _categories
+    // 使用 Repository 替代直接 DAO 调用
+    private val categoryRepository = RepositoryProvider.provideCategoryRepository(application)
+    private val eventRepository = RepositoryProvider.provideEventRepository(application)
 
     companion object {
         const val DATA_MODE_ALL_UNARCHIVED = 0 // 所有未归档
         const val DATA_MODE_ALL_ARCHIVED = 1 // 所有归档
     }
+
     fun setDateMode(dateMode: Int, startDate: Calendar, endDate: Calendar) {
-        if (this.dateMode != dateMode){
+        if (this.dateMode != dateMode) {
             this.dateMode = dateMode
             when (dateMode) {
                 DATA_MODE_ALL_UNARCHIVED -> {
-                    categories = categoryDao.getUnarchivedCategoriesOrderedByPosition()
+                    categories = categoryRepository.getUnarchivedCategoriesOrderedByPosition()
                 }
                 DATA_MODE_ALL_ARCHIVED -> {
-                    categories = categoryDao.getArchivedCategoriesOrderedByPosition()
+                    categories = categoryRepository.getArchivedCategoriesOrderedByPosition()
                 }
             }
         }
-        if (this.startDate.timeInMillis != startDate.timeInMillis || this.endDate.timeInMillis != endDate.timeInMillis){
+        if (this.startDate.timeInMillis != startDate.timeInMillis || this.endDate.timeInMillis != endDate.timeInMillis) {
             this.startDate.timeInMillis = startDate.timeInMillis
             this.endDate.timeInMillis = endDate.timeInMillis
-            events = eventDao.getEventsInRange(startDate.timeInMillis, endDate.timeInMillis)
-//            Log.d("CategoryWEIViewModel", "setDateMode: ${this.startDate.get(Calendar.DAY_OF_WEEK)} ${this.endDate.get(Calendar.DAY_OF_WEEK)}")
+            events = eventRepository.getEventsInRange(startDate.timeInMillis, endDate.timeInMillis)
         }
         refreshCategories()
     }
@@ -68,34 +59,40 @@ class CategoryWEIViewModel(application: Application): AndroidViewModel(applicati
         return _categories
     }
 
+    fun updateCategory(category: Category) = viewModelScope.launch {
+        categoryRepository.updateCategory(
+            category.id,
+            category.categoryName,
+            category.categoryColor,
+            category.position,
+            category.archived,
+            category.parentId
+        )
+    }
 
+    fun insertCategory(category: Category) = viewModelScope.launch {
+        categoryRepository.insertCategory(category)
+    }
 
-    private fun refreshCategories(){
+    fun insertEvent(startTime: Calendar, endTime: Calendar, categoryId: Long, remark: String) = viewModelScope.launch {
+        val event = Event(
+            startTime = startTime,
+            endTime = endTime,
+            categoryId = categoryId,
+            notes = remark
+        )
+        eventRepository.insertEvent(event)
+    }
+
+    private fun refreshCategories() {
         _categories = categories.combine(events) { categoriesOne, eventsOne ->
-//            Log.d("CategoryWEIViewModel", "refreshCategories: ${categoriesOne.size} ${eventsOne.size}")
             combineCategoryAndEvent(categoriesOne, eventsOne)
         }
     }
 
-
-//    private fun refresh_Categories(getCategories: (CategoryDao) -> Flow<List<Category>>,
-//                                  getEvents: (EventDao) -> Flow<List<Event>>): Flow<List<CategoryWithEventInf>>{
-//        val categories = getCategories(categoryDao)
-//        val events = getEvents(eventDao)
-//        return categories.combine(events) { categoriesOne, eventsOne ->
-//            combineCategoryAndEvent(categoriesOne, eventsOne)
-//        }
-//    }
-
-    private fun combineCategoryAndEvent(categoryList: List<Category>, eventList: List<Event>) : List<CategoryWithEventInf>{
-//        Log.d("CategoryWEIViewModel", "combineCategoryAndEvent: ${categoryList.size} ${eventList.size}")
+    private fun combineCategoryAndEvent(categoryList: List<Category>, eventList: List<Event>): List<CategoryWithEventInf> {
         if (categoryList.isEmpty()) return emptyList()
-//        val categoryDurationList = categoryList.map {
-//            val eventsOfCategory = eventList.filter { event -> event.categoryId == it.id }
-//            eventsOfCategory.sumOf { event -> event.endTime.timeInMillis - event.startTime.timeInMillis }
-//        }
-//        val maxDuration = if(categoryDurationList.isEmpty()) 0L else categoryDurationList.maxOf { it }
-//        val maxDuration = categoryDurationList.maxOf { it }
+
         val categoryWithEventInfList = categoryList.map {
             val eventsOfCategory = eventList.filter { event -> event.categoryId == it.id }
             // 遍历 Event，计算总时间，总天数，平均每天时间
@@ -103,9 +100,8 @@ class CategoryWEIViewModel(application: Application): AndroidViewModel(applicati
 
             val eventCount = eventsOfCategory.size
             val categoryDuration = eventsOfCategory.sumOf { event -> event.endTime.timeInMillis - event.startTime.timeInMillis }
-//            val timeRatioToMax = if (maxDuration == 0L) 0f else categoryDuration.toFloat() / maxDuration.toFloat()
             var totalDays = 0
-            var nowday = Calendar.getInstance().apply {  timeInMillis = 0L }
+            var nowday = Calendar.getInstance().apply { timeInMillis = 0L }
             for (event in eventsOfCategory) {
                 if (nowday.isLaterDay(event.startTime)) {
                     totalDays += 1
@@ -116,7 +112,6 @@ class CategoryWEIViewModel(application: Application): AndroidViewModel(applicati
                     nowday = event.endTime
                 }
             }
-//            it.position = 0 // 由于position与子项的View无关，因此设为0，防止不必要的刷新
             // 将计算结果添加到 Category 中
             CategoryWithEventInf(it, eventCount, categoryDuration, totalDays, 0f)
         }
@@ -137,14 +132,12 @@ class CategoryWEIViewModel(application: Application): AndroidViewModel(applicati
 
 fun Calendar.isEarlierDay(calendar: Calendar): Boolean {
     return this.get(Calendar.YEAR) > calendar.get(Calendar.YEAR) ||
-                this.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
-                this.get(Calendar.DAY_OF_YEAR) > calendar.get(Calendar.DAY_OF_YEAR)
-
+            this.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
+            this.get(Calendar.DAY_OF_YEAR) > calendar.get(Calendar.DAY_OF_YEAR)
 }
+
 fun Calendar.isLaterDay(calendar: Calendar): Boolean {
     return this.get(Calendar.YEAR) < calendar.get(Calendar.YEAR) ||
-                    this.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
-                    this.get(Calendar.DAY_OF_YEAR) < calendar.get(Calendar.DAY_OF_YEAR)
-
+            this.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
+            this.get(Calendar.DAY_OF_YEAR) < calendar.get(Calendar.DAY_OF_YEAR)
 }
-

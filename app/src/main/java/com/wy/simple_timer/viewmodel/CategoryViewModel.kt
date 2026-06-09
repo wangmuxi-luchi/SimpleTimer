@@ -4,79 +4,39 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.wy.simple_timer.database.Category
-import com.wy.simple_timer.database.CategoryDao
-import com.wy.simple_timer.database.MyDatabase
-import kotlinx.coroutines.CoroutineScope
+import com.wy.simple_timer.repository.CategoryRepository
+import com.wy.simple_timer.repository.RepositoryProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
+import kotlinx.coroutines.launch
 
-class CategoryViewModel(application: Application) : AndroidViewModel(application), CategoryViewModelDaoHelper<Application> {
-    protected var categories : Flow<List<Category>> = emptyFlow()
+class CategoryViewModel(application: Application) : AndroidViewModel(application) {
+    protected var categories: Flow<List<Category>> = emptyFlow()
 
-    // 实现 CategoryViewModelDaoHelper 接口
-    override val categoryDao = MyDatabase.getDatabase(application).categoryDao()
-    override val _viewModelScope: CoroutineScope
-        get() = viewModelScope
+    // 使用 Repository 替代直接 DAO 调用
+    private val categoryRepository = RepositoryProvider.provideCategoryRepository(application)
 
-    fun refreshCategories(func:(CategoryDao) -> Flow<List<Category>> ): Flow<List<Category>>{
-        categories = func(categoryDao)
+    fun refreshCategories(func: (CategoryRepository) -> Flow<List<Category>>): Flow<List<Category>> {
+        categories = func(categoryRepository)
         return categories
     }
 
+    fun insertCategory(category: Category) = viewModelScope.launch {
+        categoryRepository.insertCategory(category)
+    }
 
-//    fun getCategories() = categories
-//
-//    fun insertCategory(category: Category) {
-//        val intent = Intent(getApplication(), DatabaseManagementService::class.java).apply {
-//            action = "INSERT_CATEGORY"
-//            putExtra("object", category)
-//        }
-//        getApplication<Application>().startService(intent)
-//    }
-//    fun updateCategory(
-//        categoryId: Long,
-//        name: String,
-//        color: String,
-//        position: Int,
-//        archived: Boolean,
-//        parentId: Long
-//    ) {
-//        val category = Category(
-//            id = categoryId,
-//            categoryName = name,
-//            categoryColor = color,
-//            position = position,
-//            archived = archived,
-//            parentId = parentId
-//        )
-//
-//        val intent = Intent(getApplication(), DatabaseManagementService::class.java).apply {
-//            action = "UPDATE_CATEGORY"
-//            putExtra("object", category)
-//        }
-//        getApplication<Application>().startService(intent)
-//    }
-//    fun updateCategory(category: Category) {
-//        val intent = Intent(getApplication(), DatabaseManagementService::class.java).apply {
-//            action = "UPDATE_CATEGORY"
-//            putExtra("object", category)
-//        }
-//        getApplication<Application>().startService(intent)
-//    }
-//    fun deleteCategory(categoryId: Long) {
-//        val intent = Intent(getApplication(), DatabaseManagementService::class.java).apply {
-//            action = "DELETE_CATEGORY"
-//            putExtra("categoryId", categoryId)
-//        }
-//        getApplication<Application>().startService(intent)
-//    }
-//    fun getCategoriesByParentId(parentId: Long) = viewModelScope.launch {
-//        categoryDao.getCategoriesByParentId(parentId)
-//    }
-//    fun getCategoryById(categoryId: Long) = viewModelScope.launch {
-//        categoryDao.getCategoriesById(categoryId)
-//    }
+    fun updateCategory(
+        categoryId: Long,
+        name: String,
+        color: String,
+        position: Int,
+        archived: Boolean,
+        parentId: Long
+    ) = viewModelScope.launch {
+        categoryRepository.updateCategory(categoryId, name, color, position, archived, parentId)
+    }
 
+    fun deleteCategory(categoryId: Long) = viewModelScope.launch {
+        categoryRepository.deleteCategory(categoryId)
+    }
 }
