@@ -230,17 +230,28 @@ class CategoryManagementFragment : Fragment() {
             // 结束时间为当前时间
             val endTime = Calendar.getInstance()
 
-            val dayStartCalendar = Calendar.getInstance()
-            dayStartCalendar.apply {
+            val dayStartCalendar = Calendar.getInstance().apply {
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
                 set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
             }
-            val startTime = (latestEvent?.endTime ?: dayStartCalendar)
-            if (startTime.timeInMillis > Calendar.getInstance()
-                    .apply { add(Calendar.MINUTE, -1) }.timeInMillis
-            ) {
-                //Toast
+
+            var startTime = dayStartCalendar
+            if (latestEvent != null) {
+                // 检查上一条记录的结束时间到当前时间的时间差是否大于24小时
+                val timeDiff = endTime.timeInMillis - latestEvent.endTime.timeInMillis
+                val twentyFourHours = 24 * 60 * 60 * 1000L // 24小时的毫秒数
+                
+                if (timeDiff <= twentyFourHours) {
+                    // 时间差不超过24小时，使用上一条记录的结束时间作为开始时间
+                    startTime = latestEvent.endTime
+                }
+                // 时间差超过24小时，使用当天0点作为开始时间（startTime已默认为dayStartCalendar）
+            }
+            // 没有记录时，startTime也默认为dayStartCalendar
+
+            if (startTime.timeInMillis > endTime.timeInMillis - 60 * 1000) {
                 Toast.makeText(requireContext(), "时长不能小于一分钟", Toast.LENGTH_SHORT).show()
                 categoryAdapter.notifyItemChanged(position)
                 return@launch
